@@ -226,11 +226,32 @@ class DbService {
     return {for (final r in rows) r['unit_id'] as int: r['cnt'] as int};
   }
 
+  static Future<Map<int, int>> getPassedCounts() async {
+    final d = await db;
+    final rows = await d.rawQuery('''
+      SELECT w.unit_id, COUNT(*) as cnt
+      FROM words w JOIN word_progress wp ON w.id = wp.word_id
+      WHERE wp.is_passed = 1
+      GROUP BY w.unit_id
+    ''');
+    return {for (final r in rows) r['unit_id'] as int: r['cnt'] as int};
+  }
+
   static Future<int> getGradeWordCount(int gradeId) async {
     final d = await db;
     return Sqflite.firstIntValue(await d.rawQuery(
       'SELECT COUNT(*) FROM words WHERE unit_id IN (SELECT id FROM units WHERE grade_id = ?)',
       [gradeId])) ?? 0;
+  }
+
+  static Future<int> getGradePassedCount(int gradeId) async {
+    final d = await db;
+    return Sqflite.firstIntValue(await d.rawQuery('''
+      SELECT COUNT(*) FROM word_progress wp
+      JOIN words w ON w.id = wp.word_id
+      JOIN units u ON u.id = w.unit_id
+      WHERE u.grade_id = ? AND wp.is_passed = 1
+    ''', [gradeId])) ?? 0;
   }
 
   // ── seed ────────────────────────────────────────────────────

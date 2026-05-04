@@ -166,7 +166,7 @@ class _HomePageState extends State<HomePage> {
       _words.removeAt(_currentIndex);
       if (_words.isEmpty) {
         setState(() {});
-        _treeKey.currentState?.refreshHardCount();
+        _treeKey.currentState?.refreshCounts();
         _autoAdvance();
         return;
       }
@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
         _isHard = false;
       });
     }
-    _treeKey.currentState?.refreshHardCount();
+    _treeKey.currentState?.refreshCounts();
   }
 
   Future<void> _onToggleHard() async {
@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
     final newHard = !_isHard;
     await DbService.setHard(w.id!, newHard);
     setState(() => _isHard = newHard);
-    _treeKey.currentState?.refreshHardCount();
+    _treeKey.currentState?.refreshCounts();
   }
 
   @override

@@ -19,7 +19,9 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
   List<Map<String, dynamic>> _grades = [];
   Map<int, List<Map<String, dynamic>>> _unitsCache = {};
   Map<int, int> _wordCounts = {};
+  Map<int, int> _passedCounts = {};
   Map<int, int> _gradeCounts = {};
+  Map<int, int> _gradePassed = {};
   int? _selectedUnitId;
   bool _hardBookSelected = false;
   int _hardCount = 0;
@@ -27,26 +29,34 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    refreshCounts();
   }
 
-  Future<void> _loadData() async {
+  Future<void> refreshCounts() async {
     final grades = await DbService.getGrades();
     final counts = await DbService.getWordCounts();
+    final passed = await DbService.getPassedCounts();
     final gradeCounts = <int, int>{};
+    final gradePassed = <int, int>{};
     for (final g in grades) {
-      gradeCounts[g['id'] as int] = await DbService.getGradeWordCount(g['id'] as int);
+      final gid = g['id'] as int;
+      gradeCounts[gid] = await DbService.getGradeWordCount(gid);
+      gradePassed[gid] = await DbService.getGradePassedCount(gid);
     }
     final hard = await DbService.countHardWords();
     if (mounted) {
       setState(() {
         _grades = grades;
         _wordCounts = counts;
+        _passedCounts = passed;
         _gradeCounts = gradeCounts;
+        _gradePassed = gradePassed;
         _hardCount = hard;
       });
     }
   }
+
+  String _rem(int total, int passed) => '${total - passed}/$total';
 
   Future<void> refreshHardCount() async {
     final count = await DbService.countHardWords();
@@ -110,7 +120,7 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
             return ExpansionTile(
               leading: const Icon(Icons.menu_book, size: 20),
               title: Text(
-                '${grade['name']} (${_gradeCounts[grade['id']] ?? 0})',
+                '${grade['name']} (${_rem(_gradeCounts[grade['id']] ?? 0, _gradePassed[grade['id']] ?? 0)})',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               children: [
@@ -134,7 +144,7 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
                           selected: isSelected,
                           selectedTileColor: Colors.blue.withAlpha(25),
                           title: Text(
-                              '$unitName (${_wordCounts[unitId] ?? 0})',
+                              '$unitName (${_rem(_wordCounts[unitId] ?? 0, _passedCounts[unitId] ?? 0)})',
                               style: TextStyle(
                                   fontSize: 12,
                                   fontWeight:
