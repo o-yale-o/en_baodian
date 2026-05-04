@@ -18,8 +18,9 @@ class DbService {
     final dbPath = await getDatabasesPath();
     _db = await openDatabase(
       p.join(dbPath, 'en_baodian.db'),
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
     return _db!;
   }
@@ -32,7 +33,6 @@ class DbService {
         sort_order INTEGER NOT NULL DEFAULT 0
       )
     ''');
-
     await db.execute('''
       CREATE TABLE units (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +42,6 @@ class DbService {
         FOREIGN KEY (grade_id) REFERENCES grades(id)
       )
     ''');
-
     await db.execute('''
       CREATE TABLE words (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,6 +54,27 @@ class DbService {
         FOREIGN KEY (unit_id) REFERENCES units(id)
       )
     ''');
+    await db.execute('''
+      CREATE TABLE word_progress (
+        word_id INTEGER PRIMARY KEY,
+        is_passed INTEGER NOT NULL DEFAULT 0,
+        is_hard INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (word_id) REFERENCES words(id)
+      )
+    ''');
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldV, int newV) async {
+    if (oldV < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS word_progress (
+          word_id INTEGER PRIMARY KEY,
+          is_passed INTEGER NOT NULL DEFAULT 0,
+          is_hard INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (word_id) REFERENCES words(id)
+        )
+      ''');
+    }
   }
 
   // ── grades ──────────────────────────────────────────────────
@@ -87,11 +107,38 @@ class DbService {
 
   // ── words ───────────────────────────────────────────────────
 
-  static Future<List<Word>> getWordsByUnit(int unitId) async {
+  static Future<List<Word>> getWordsByUnit(int unitId, {bool skipPassed = false}) async {
     final d = await db;
+    if (skipPassed) {
+      final rows = await d.rawQuery('''
+        SELECT w.* FROM words w
+        LEFT JOIN word_progress wp ON w.id = wp.word_id
+        WHERE w.unit_id = ?
+          AND (wp.is_passed IS NULL OR wp.is_passed = 0)
+        ORDER BY w.id
+      ''', [unitId]);
+      return rows.map((r) => Word.fromMap(r)).toList();
+    }
     final rows = await d.query('words',
         where: 'unit_id = ?', whereArgs: [unitId], orderBy: 'id');
     return rows.map((r) => Word.fromMap(r)).toList();
+  }
+
+  static Future<List<Word>> getHardWords() async {
+    final d = await db;
+    final rows = await d.rawQuery('''
+      SELECT w.* FROM words w
+      JOIN word_progress wp ON w.id = wp.word_id
+      WHERE wp.is_hard = 1
+      ORDER BY w.id
+    ''');
+    return rows.map((r) => Word.fromMap(r)).toList();
+  }
+
+  static Future<int> countHardWords() async {
+    final d = await db;
+    return Sqflite.firstIntValue(
+        await d.rawQuery('SELECT COUNT(*) FROM word_progress WHERE is_hard = 1')) ?? 0;
   }
 
   static Future<int> insertWord(Word word) async {
@@ -120,6 +167,56 @@ class DbService {
       });
     }
     await batch.commit(noResult: true);
+  }
+
+  // ── progress ────────────────────────────────────────────────
+
+  static Future<bool> isPassed(int wordId) async {
+    final d = await db;
+    final rows = await d.query('word_progress',
+        where: 'word_id = ? AND is_passed = 1',
+        whereArgs: [wordId],
+        limit: 1);
+    return rows.isNotEmpty;
+  }
+
+  static Future<bool> isHard(int wordId) async {
+    final d = await db;
+    final rows = await d.query('word_progress',
+        where: 'word_id = ? AND is_hard = 1',
+        whereArgs: [wordId],
+        limit: 1);
+    return rows.isNotEmpty;
+  }
+
+  static Future<void> _ensureProgress(int wordId) async {
+    final d = await db;
+    await d.rawInsert(
+      'INSERT OR IGNORE INTO word_progress (word_id, is_passed, is_hard) VALUES (?, 0, 0)',
+      [wordId],
+    );
+  }
+
+  static Future<void> setPassed(int wordId, bool v) async {
+    final d = await db;
+    await _ensureProgress(wordId);
+    await d.update('word_progress', {'is_passed': v ? 1 : 0},
+        where: 'word_id = ?', whereArgs: [wordId]);
+  }
+
+  static Future<void> setHard(int wordId, bool v) async {
+    final d = await db;
+    await _ensureProgress(wordId);
+    await d.update('word_progress', {'is_hard': v ? 1 : 0},
+        where: 'word_id = ?', whereArgs: [wordId]);
+  }
+
+  static Future<void> resetUnitPassed(int unitId) async {
+    final d = await db;
+    await d.rawUpdate('''
+      UPDATE word_progress SET is_passed = 0
+      WHERE word_id IN (SELECT id FROM words WHERE unit_id = ?)
+    ''', [unitId]);
   }
 
   // ── seed ────────────────────────────────────────────────────

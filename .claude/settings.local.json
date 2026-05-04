@@ -37,7 +37,11 @@
       "Read(//c/Users/Lusp/AppData/**)",
       "Read(//d/tmp/**)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(sqlite3 \"/d/todo/en_baodian/.dart_tool/sqflite_common_ffi/databases/en_baodian.db\" \".schema\")",
+      "Bash(sqlite3 \"/d/todo/en_baodian/.dart_tool/sqflite_common_ffi/databases/en_baodian.db\" \"SELECT * FROM grades;\")",
+      "Bash(sqlite3 \"/d/todo/en_baodian/.dart_tool/sqflite_common_ffi/databases/en_baodian.db\" \"SELECT * FROM units LIMIT 15;\")",
+      "Bash(sqlite3 \"/d/todo/en_baodian/.dart_tool/sqflite_common_ffi/databases/en_baodian.db\" \"SELECT COUNT\\(*\\) AS total_words FROM words; SELECT unit_id, COUNT\\(*\\) AS cnt FROM words GROUP BY unit_id; SELECT word, pronunciation, meaning, sentence FROM words WHERE unit_id=4 LIMIT 8;\")"
     ]
   }
 }

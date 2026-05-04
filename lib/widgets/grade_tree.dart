@@ -3,27 +3,44 @@ import '../services/db_service.dart';
 
 class GradeTreeWidget extends StatefulWidget {
   final void Function(int unitId, String unitName) onUnitSelected;
+  final VoidCallback onHardBookSelected;
 
-  const GradeTreeWidget({super.key, required this.onUnitSelected});
+  const GradeTreeWidget({
+    super.key,
+    required this.onUnitSelected,
+    required this.onHardBookSelected,
+  });
 
   @override
-  State<GradeTreeWidget> createState() => _GradeTreeWidgetState();
+  State<GradeTreeWidget> createState() => GradeTreeWidgetState();
 }
 
-class _GradeTreeWidgetState extends State<GradeTreeWidget> {
+class GradeTreeWidgetState extends State<GradeTreeWidget> {
   List<Map<String, dynamic>> _grades = [];
   Map<int, List<Map<String, dynamic>>> _unitsCache = {};
   int? _selectedUnitId;
+  bool _hardBookSelected = false;
+  int _hardCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadGrades();
+    _updateHardCount();
   }
 
   Future<void> _loadGrades() async {
     final grades = await DbService.getGrades();
     setState(() => _grades = grades);
+  }
+
+  Future<void> refreshHardCount() async {
+    final count = await DbService.countHardWords();
+    if (mounted) setState(() => _hardCount = count);
+  }
+
+  Future<void> _updateHardCount() async {
+    await refreshHardCount();
   }
 
   Future<List<Map<String, dynamic>>> _loadUnits(int gradeId) async {
@@ -33,57 +50,100 @@ class _GradeTreeWidgetState extends State<GradeTreeWidget> {
     return units;
   }
 
+  void selectUnit(int unitId) {
+    setState(() {
+      _selectedUnitId = unitId;
+      _hardBookSelected = false;
+    });
+  }
+
+  void _selectHardBook() {
+    setState(() {
+      _hardBookSelected = true;
+      _selectedUnitId = null;
+    });
+    widget.onHardBookSelected();
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_grades.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return ListView(
       padding: EdgeInsets.zero,
-      children: _grades.map((grade) {
-        final gradeId = grade['id'] as int;
-        return ExpansionTile(
-          leading: const Icon(Icons.menu_book, size: 20),
+      children: [
+        // ── 难题本（全局） ──────────────
+        ListTile(
+          dense: true,
+          selected: _hardBookSelected,
+          selectedTileColor: Colors.orange.withAlpha(25),
+          leading: Icon(Icons.star, size: 20, color: Colors.orange[700]),
           title: Text(
-            grade['name'] as String,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-          children: [
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: _loadUnits(gradeId),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  );
-                }
-                return Column(
-                  children: snapshot.data!.map((unit) {
-                    final unitId = unit['id'] as int;
-                    final unitName = unit['name'] as String;
-                    final isSelected = unitId == _selectedUnitId;
-                    return ListTile(
-                      dense: true,
-                      contentPadding: const EdgeInsets.only(left: 56, right: 8),
-                      selected: isSelected,
-                      selectedTileColor: Colors.blue.withAlpha(25),
-                      title: Text(unitName,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                      onTap: () {
-                        setState(() => _selectedUnitId = unitId);
-                        widget.onUnitSelected(unitId, unitName);
-                      },
-                    );
-                  }).toList(),
-                );
-              },
+            '难题本 ($_hardCount)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: _hardBookSelected ? FontWeight.bold : FontWeight.w500,
+              color: _hardBookSelected ? Colors.orange[800] : null,
             ),
-          ],
-        );
-      }).toList(),
+          ),
+          onTap: _selectHardBook,
+        ),
+        const Divider(height: 1),
+
+        // ── 年级列表 ──────────────────
+        if (_grades.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else
+          ..._grades.map((grade) {
+            final gradeId = grade['id'] as int;
+            return ExpansionTile(
+              leading: const Icon(Icons.menu_book, size: 20),
+              title: Text(
+                grade['name'] as String,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              children: [
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _loadUnits(gradeId),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                      );
+                    }
+                    return Column(
+                      children: snapshot.data!.map((unit) {
+                        final unitId = unit['id'] as int;
+                        final unitName = unit['name'] as String;
+                        final isSelected = unitId == _selectedUnitId;
+                        return ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.only(left: 56, right: 8),
+                          selected: isSelected,
+                          selectedTileColor: Colors.blue.withAlpha(25),
+                          title: Text(unitName,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight:
+                                      isSelected ? FontWeight.bold : FontWeight.normal)),
+                          onTap: () {
+                            setState(() {
+                              _selectedUnitId = unitId;
+                              _hardBookSelected = false;
+                            });
+                            widget.onUnitSelected(unitId, unitName);
+                          },
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
+            );
+          }),
+      ],
     );
   }
 }

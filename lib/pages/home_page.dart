@@ -14,10 +14,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TtsService _tts = TtsService();
+  final _treeKey = GlobalKey<GradeTreeWidgetState>();
   List<Word> _words = [];
   int _currentIndex = 0;
-  String _currentUnit = '';
+  String _currentLabel = '';
   bool _loading = false;
+  bool _isHardMode = false;
+  int? _currentUnitId;
+
+  bool _isPassed = false;
+  bool _isHard = false;
 
   @override
   void dispose() {
@@ -26,33 +32,101 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _onUnitSelected(int unitId, String unitName) async {
-    setState(() {
-      _loading = true;
-      _currentUnit = unitName;
-    });
-    final words = await DbService.getWordsByUnit(unitId);
+    _currentUnitId = unitId;
+    await _loadWords(
+      () => DbService.getWordsByUnit(unitId, skipPassed: true),
+      unitName,
+      false,
+    );
+  }
+
+  Future<void> _onHardBookSelected() async {
+    _currentUnitId = null;
+    await _loadWords(
+      () => DbService.getHardWords(),
+      '难题本 — 全局',
+      true,
+    );
+  }
+
+  Future<void> _loadWords(
+    Future<List<Word>> Function() loader,
+    String label,
+    bool hardMode,
+  ) async {
+    setState(() => _loading = true);
+    final words = await loader();
     setState(() {
       _words = words;
       _currentIndex = 0;
+      _currentLabel = label;
+      _isHardMode = hardMode;
       _loading = false;
     });
-    if (words.isNotEmpty) {
-      _tts.preload(words.first.word);
-      _tts.preload(words.first.sentence);
+    _refreshProgress();
+    _preloadCurrent();
+  }
+
+  Future<void> _autoAdvance() async {
+    if (_currentUnitId == null) return;
+    final d = await DbService.db;
+    // find current unit's grade_id and sort_order
+    final current = await d.query('units',
+        where: 'id = ?', whereArgs: [_currentUnitId], limit: 1);
+    if (current.isEmpty) return;
+    final gradeId = current.first['grade_id'] as int;
+    final sortOrder = current.first['sort_order'] as int;
+
+    // try next unit in same grade
+    var next = await d.query('units',
+        where: 'grade_id = ? AND sort_order > ?',
+        whereArgs: [gradeId, sortOrder],
+        orderBy: 'sort_order',
+        limit: 1);
+
+    // try first unit of next grade
+    if (next.isEmpty) {
+      next = await d.query('units',
+          where: 'grade_id > ?',
+          whereArgs: [gradeId],
+          orderBy: 'grade_id, sort_order',
+          limit: 1);
+    }
+
+    if (next.isNotEmpty) {
+      final nextUnit = next.first;
+      final id = nextUnit['id'] as int;
+      _treeKey.currentState?.selectUnit(id);
+      _onUnitSelected(id, nextUnit['name'] as String);
     }
   }
 
-  void _prevWord() {
-    if (_currentIndex > 0) {
-      setState(() => _currentIndex--);
-      _preloadCurrent();
-    }
+  Future<void> _goToNextUnit() async {
+    await _autoAdvance();
   }
 
-  void _nextWord() {
-    if (_currentIndex < _words.length - 1) {
-      setState(() => _currentIndex++);
-      _preloadCurrent();
+  Future<void> _resetCurrentUnit() async {
+    if (_currentUnitId == null) return;
+    await DbService.resetUnitPassed(_currentUnitId!);
+    // Reload the same unit
+    await _loadWords(
+      () => DbService.getWordsByUnit(_currentUnitId!, skipPassed: true),
+      _currentLabel,
+      false,
+    );
+  }
+
+  Future<void> _refreshProgress() async {
+    if (_words.isEmpty) return;
+    final w = _words[_currentIndex];
+    if (w.id == null) return;
+    final passed = await DbService.isPassed(w.id!);
+    final hard = await DbService.isHard(w.id!);
+    if (mounted) {
+      setState(() {
+        _isPassed = passed;
+        _isHard = hard;
+      });
     }
   }
 
@@ -61,6 +135,63 @@ class _HomePageState extends State<HomePage> {
     final w = _words[_currentIndex];
     _tts.preload(w.word);
     _tts.preload(w.sentence);
+  }
+
+  void _prevWord() {
+    if (_currentIndex > 0) {
+      setState(() => _currentIndex--);
+      _refreshProgress();
+      _preloadCurrent();
+    }
+  }
+
+  Future<void> _nextWord() async {
+    if (_currentIndex < _words.length - 1) {
+      setState(() => _currentIndex++);
+      _refreshProgress();
+      _preloadCurrent();
+    }
+  }
+
+  Future<void> _onPassed() async {
+    final w = _words[_currentIndex];
+    if (w.id == null) return;
+    await DbService.setPassed(w.id!, true);
+    // If it was hard, clear hard status so it leaves the hard book
+    if (_isHard) {
+      await DbService.setHard(w.id!, false);
+    }
+    // In non-hard mode, passed words are filtered out — move to next
+    if (!_isHardMode) {
+      _words.removeAt(_currentIndex);
+      if (_words.isEmpty) {
+        setState(() {});
+        _treeKey.currentState?.refreshHardCount();
+        _autoAdvance();
+        return;
+      }
+      if (_currentIndex >= _words.length) {
+        setState(() => _currentIndex = _words.length - 1);
+      }
+      _refreshProgress();
+      _preloadCurrent();
+      setState(() {});
+    } else {
+      setState(() {
+        _isPassed = true;
+        _isHard = false;
+      });
+    }
+    _treeKey.currentState?.refreshHardCount();
+  }
+
+  Future<void> _onToggleHard() async {
+    final w = _words[_currentIndex];
+    if (w.id == null) return;
+    final newHard = !_isHard;
+    await DbService.setHard(w.id!, newHard);
+    setState(() => _isHard = newHard);
+    _treeKey.currentState?.refreshHardCount();
   }
 
   @override
@@ -74,7 +205,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Row(
         children: [
-          // ── 左侧：年级-单元树 ──────────────────
+          // ── 左侧 ──────────────────────────
           SizedBox(
             width: 220,
             child: Container(
@@ -90,17 +221,19 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
                   Expanded(
-                    child: GradeTreeWidget(onUnitSelected: _onUnitSelected),
+                    child: GradeTreeWidget(
+                      key: _treeKey,
+                      onUnitSelected: _onUnitSelected,
+                      onHardBookSelected: _onHardBookSelected,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           const VerticalDivider(width: 1),
-          // ── 右侧：单词卡 ──────────────────────────
-          Expanded(
-            child: _buildContent(),
-          ),
+          // ── 右侧 ──────────────────────────
+          Expanded(child: _buildContent()),
         ],
       ),
     );
@@ -115,10 +248,43 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.arrow_back, size: 48, color: Colors.grey[300]),
-            const SizedBox(height: 12),
-            Text('请从左侧选择单元',
-                style: TextStyle(fontSize: 16, color: Colors.grey[400])),
+            Icon(
+              _isHardMode ? Icons.star_border : Icons.check_circle_outline,
+              size: 56,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _isHardMode ? '还没有标记难题' : '本单元已全部过关！',
+              style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+            ),
+            if (!_isHardMode) ...[
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _resetCurrentUnit,
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('重新开始'),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: _goToNextUnit,
+                    icon: const Icon(Icons.skip_next),
+                    label: const Text('下一单元'),
+                  ),
+                ],
+              ),
+            ],
+            if (_isHardMode)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '在学习中标为"难题"的单词会出现在这里',
+                  style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                ),
+              ),
           ],
         ),
       );
@@ -130,21 +296,36 @@ class _HomePageState extends State<HomePage> {
 
     return Column(
       children: [
-        const SizedBox(height: 8),
-        Text(
-          _currentUnit,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(color: Colors.grey[500]),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _currentLabel,
+              style:
+                  Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[500]),
+            ),
+            if (_isHardWordOverlay())
+              const Padding(
+                padding: EdgeInsets.only(left: 6),
+                child: Icon(Icons.star, size: 14, color: Colors.orange),
+              ),
+          ],
         ),
         Expanded(
           child: Center(
-            child: WordCardWidget(word: word, tts: _tts),
+            child: WordCardWidget(
+              word: word,
+              tts: _tts,
+              isPassed: _isPassed,
+              isHard: _isHard,
+              onPassed: _onPassed,
+              onToggleHard: _onToggleHard,
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -165,8 +346,13 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
       ],
     );
+  }
+
+  bool _isHardWordOverlay() {
+    // Show when the current word is hard but we're NOT in hard mode
+    return !_isHardMode && _isHard;
   }
 }
