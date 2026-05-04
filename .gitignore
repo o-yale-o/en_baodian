@@ -1,0 +1,67 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+pubspec.lock
+
+# Symbolication / Obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/local.properties
+/android/app/google-services.json
+/android/.gradle/
+
+# iOS
+/ios/Pods/
+/ios/.symlinks/
+
+# macOS
+/macos/Pods/
+/macos/.symlinks/
+
+# Linux
+/linux/flutter/
+
+# Windows
+/windows/flutter/ephemeral/
+
+# Temp / logs
+*.tmp
+*.temp
+
+# Environment
+.env
+.env.*
+!.env.example

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(NO_PROXY=localhost,127.0.0.1 flutter run -d windows)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}\" \"https://dict.youdao.com/dictvoice?audio=apple&type=1\" --connect-timeout 5 --max-time 10)",
+      "WebSearch",
+      "Bash(flutter pub *)"
+    ]
+  }
+}
