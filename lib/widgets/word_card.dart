@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/word.dart';
 import '../services/tts_service.dart';
+import '../services/word_analysis.dart';
 
 class WordCardWidget extends StatelessWidget {
   final Word word;
@@ -19,6 +20,23 @@ class WordCardWidget extends StatelessWidget {
     required this.onPassed,
     required this.onToggleHard,
   });
+
+  Widget _buildAnalysis(BuildContext context) {
+    final parts = analyze(word.word);
+    if (!parts.hasAnalysis) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.amber.withAlpha(20),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        '构词: ${parts.format()}',
+        style: TextStyle(fontSize: 11, color: Colors.brown[600]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +88,8 @@ class WordCardWidget extends StatelessWidget {
                     color: Colors.black87,
                   ),
             ),
+            // Word formation analysis
+            _buildAnalysis(context),
             const SizedBox(height: 12),
 
             // Sentence + speaker
