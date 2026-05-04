@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'pages/word_page.dart';
+import 'data/seed_data.dart';
+import 'pages/home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await seedDatabase();
   runApp(const MyApp());
 }
 
@@ -17,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const WordPage(),
+      home: const HomePage(),
     );
   }
 }

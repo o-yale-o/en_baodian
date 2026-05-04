@@ -1,0 +1,522 @@
+import '../services/db_service.dart';
+import '../models/word.dart';
+
+Future<void> seedDatabase() async {
+  if (!await DbService.needsSeed()) return;
+
+  // ═══════════════════════════════════════════════════════════
+  // 七年级上册 (2024 新人教版)
+  // ═══════════════════════════════════════════════════════════
+  final g7a = await DbService.insertGrade('七年级上册', 1);
+
+  // ── Starter Unit 1: Hello! ──────────────────────────────
+  final u7aSU1 = await DbService.insertUnit(g7a, 'Starter Unit 1: Hello!', 1);
+  await _insertWords(u7aSU1, [
+    _w('unit', '/ˈjuːnɪt/', 'n. 单元', 'This is Unit 1.', '这是第一单元。'),
+    _w('starter unit', '/ˈstɑːrtər ˈjuːnɪt/', 'n. 过渡单元', '', ''),
+    _w('section', '/ˈsekʃn/', 'n. 部分；地区', 'This section of the city is very beautiful.', '城市的这一部分很美。'),
+    _w('greet', '/ɡriːt/', 'v. 招呼；问候', 'We should greet our teachers politely.', '我们应该礼貌地问候老师。'),
+    _w('everyone', '/ˈevriwʌn/', 'pron. 每人；所有人', 'Everyone likes music.', '每个人都喜欢音乐。'),
+    _w('start', '/stɑːrt/', 'v. 开始；着手', 'Let\'s start our class.', '我们开始上课吧。'),
+    _w('conversation', '/ˌkɑːnvərˈseɪʃn/', 'n. 谈话；交谈', 'How do you start a conversation?', '你如何开始一段对话？'),
+    _w('spell', '/spel/', 'v. 用字母拼；拼写', 'Can you spell your name?', '你能拼写你的名字吗？'),
+    _w('oh', '/əʊ/', 'interj. 哦；啊', 'Oh, I see.', '哦，我明白了。'),
+    _w('bell', '/bel/', 'n. 铃(声)；钟(声)', 'The bell rings every day at 8 o\'clock.', '铃声每天八点响。'),
+    _w('each', '/iːtʃ/', 'adj.&pron. 每个；各自', 'Each student has a book.', '每个学生都有一本书。'),
+    _w('other', '/ˈʌðə(r)/', 'pron.&adj. 另外的；其他的', 'I have two pens. One is red, the other is blue.', '我有两支笔，一支红，一支蓝。'),
+    _w('each other', '/iːtʃ ˈʌðə(r)/', '互相；彼此', 'We learn from each other.', '我们互相学习。'),
+    _w('hello', '/həˈloʊ/', 'interj. 你好', 'Hello, everyone!', '大家好！'),
+    _w('morning', '/ˈmɔːrnɪŋ/', 'n. 早晨；上午', 'Good morning!', '早上好！'),
+    _w('afternoon', '/ˌæftərˈnuːn/', 'n. 下午', 'Good afternoon!', '下午好！'),
+    _w('evening', '/ˈiːvnɪŋ/', 'n. 晚上', 'Good evening!', '晚上好！'),
+    _w('how', '/haʊ/', 'adv. 怎样；如何', 'How are you?', '你好吗？'),
+    _w('fine', '/faɪn/', 'adj. 好的；健康的', 'I\'m fine, thank you.', '我很好，谢谢。'),
+    _w('thanks', '/θæŋks/', 'interj.&n. 谢谢', 'Thanks a lot!', '非常感谢！'),
+    _w('name', '/neɪm/', 'n. 名字', 'What\'s your name?', '你叫什么名字？'),
+    _w('nice', '/naɪs/', 'adj. 令人愉快的', 'Nice to meet you.', '见到你很高兴。'),
+    _w('meet', '/miːt/', 'v. 遇见；相逢', 'Nice to meet you, too.', '见到你也很高兴。'),
+    _w('too', '/tuː/', 'adv. 也；太', 'Nice to meet you, too.', '见到你也很高兴。'),
+    _w('Ms', '/mɪz/', 'n. 女士', 'Good morning, Ms Gao.', '早上好，高老师。'),
+    _w('class', '/klɑːs/', 'n. 班级；课', 'Good morning, class.', '同学们早上好。'),
+    _w('sit down', '/sɪt daʊn/', '坐下', 'Sit down, please.', '请坐。'),
+    _w('please', '/pliːz/', 'interj. 请', 'Sit down, please.', '请坐。'),
+  ]);
+
+  // ── Starter Unit 2: Keep Tidy ──────────────────────────
+  final u7aSU2 = await DbService.insertUnit(g7a, 'Starter Unit 2: Keep Tidy', 2);
+  await _insertWords(u7aSU2, [
+    _w('bottle', '/ˈbɒtl/', 'n. 瓶子', 'I have a bottle.', '我有一个瓶子。'),
+    _w('eraser', '/ɪˈreɪzər/', 'n. 橡皮', '', ''),
+    _w('key', '/kiː/', 'n. 钥匙；关键', '', ''),
+    _w('thing', '/θɪŋ/', 'n. 东西；事情', '', ''),
+    _w('need', '/niːd/', 'v.&n. 需要', 'You need to keep your room tidy.', '你需要保持房间整洁。'),
+    _w('tidy', '/ˈtaɪdi/', 'adj. 整洁的；v. 使整洁', 'You need to keep your room tidy.', '你需要保持房间整洁。'),
+    _w('cap', '/kæp/', 'n. 帽子', 'I have a cap.', '我有一顶帽子。'),
+    _w('schoolbag', '/ˈskuːlbæɡ/', 'n. 书包', 'What do you have in your schoolbag?', '你书包里有什么？'),
+    _w('ruler', '/ˈruːlər/', 'n. 尺子', 'I have a ruler.', '我有一把尺子。'),
+    _w('pencil', '/ˈpensl/', 'n. 铅笔', '', ''),
+    _w('glasses', '/ˈɡlɑːsɪz/', 'n. 眼镜', 'I can\'t find my new glasses.', '我找不到我的新眼镜了。'),
+    _w('find', '/faɪnd/', 'v. 找到；发现', 'I can\'t find my new cap.', '我找不到我的新帽子了。'),
+    _w('colour', '/ˈkʌlər/', 'n. 颜色', 'What colour is it?', '它是什么颜色的？'),
+    _w('red', '/red/', 'adj.&n. 红色的', 'It\'s red.', '它是红色的。'),
+    _w('yellow', '/ˈjeləʊ/', 'adj.&n. 黄色的', '', ''),
+    _w('green', '/ɡriːn/', 'adj.&n. 绿色的', '', ''),
+    _w('blue', '/bluː/', 'adj.&n. 蓝色的', '', ''),
+    _w('black', '/blæk/', 'adj.&n. 黑色的', '', ''),
+    _w('white', '/waɪt/', 'adj.&n. 白色的', '', ''),
+    _w('brown', '/braʊn/', 'adj.&n. 棕色的', 'They\'re brown.', '它们是棕色的。'),
+    _w('orange', '/ˈɒrɪndʒ/', 'adj.&n. 橙色的；橙子', '', ''),
+    _w('under', '/ˈʌndər/', 'prep. 在……下面', 'It\'s under your desk.', '它在你的书桌下面。'),
+    _w('desk', '/desk/', 'n. 书桌', 'It\'s under your desk.', '它在你的书桌下面。'),
+    _w('chair', '/tʃeər/', 'n. 椅子', '', ''),
+    _w('box', '/bɒks/', 'n. 盒子；箱子', '', ''),
+    _w('bed', '/bed/', 'n. 床', '', ''),
+    _w('room', '/ruːm/', 'n. 房间', 'You need to keep your room tidy.', '你需要保持房间整洁。'),
+    _w('sorry', '/ˈsɒri/', 'interj. 对不起', 'OK. Sorry, Mum.', '好的。对不起，妈妈。'),
+    _w('keep', '/kiːp/', 'v. 保持；保留', 'You need to keep your room tidy.', '你需要保持房间整洁。'),
+  ]);
+
+  // ── Starter Unit 3: Welcome! ───────────────────────────
+  final u7aSU3 = await DbService.insertUnit(g7a, 'Starter Unit 3: Welcome!', 3);
+  await _insertWords(u7aSU3, [
+    _w('fun', '/fʌn/', 'n.&adj. 乐趣；快乐；有趣的', '', ''),
+    _w('yard', '/jɑːrd/', 'n. 院子；园圃', 'What animal does Helen see in the yard?', '海伦在院子里看到了什么动物？'),
+    _w('carrot', '/ˈkærət/', 'n. 胡萝卜', '', ''),
+    _w('goose', '/ɡuːs/', 'n. 鹅 (pl. geese)', '', ''),
+    _w('count', '/kaʊnt/', 'v. 数数', '', ''),
+    _w('another', '/əˈnʌðər/', 'adj.&pron. 另一；又一', 'Another duck is behind the big tree.', '另一只鸭子在大树后面。'),
+    _w('else', '/els/', 'adv. 其他的；别的', '', ''),
+    _w('circle', '/ˈsɜːrkl/', 'v.&n. 圈出；圆形；圆圈', '', ''),
+    _w('look at', '/lʊk æt/', '看；瞧', 'Look at the farm!', '看那个农场！'),
+    _w('welcome', '/ˈwelkəm/', 'interj.&v. 欢迎', 'Welcome to my house.', '欢迎来我家。'),
+    _w('animal', '/ˈænɪml/', 'n. 动物', 'What animal does Helen see in the yard?', '海伦在院子里看到了什么动物？'),
+    _w('plant', '/plɑːnt/', 'n. 植物', 'They\'re carrot plants.', '它们是胡萝卜苗。'),
+    _w('duck', '/dʌk/', 'n. 鸭子', 'Another duck is behind the big tree.', '另一只鸭子在大树后面。'),
+    _w('tree', '/triː/', 'n. 树', 'Another duck is behind the big tree.', '另一只鸭子在大树后面。'),
+    _w('behind', '/bɪˈhaɪnd/', 'prep. 在……后面', 'Another duck is behind the big tree.', '另一只鸭子在大树后面。'),
+    _w('house', '/haʊs/', 'n. 房子', 'Welcome to my house.', '欢迎来我家。'),
+    _w('show', '/ʃəʊ/', 'v. 给……看；展示', 'Let me show you around.', '让我带你看看。'),
+    _w('cat', '/kæt/', 'n. 猫', 'It\'s a cat.', '它是一只猫。'),
+    _w('rabbit', '/ˈræbɪt/', 'n. 兔子', '', ''),
+    _w('tomato', '/təˈmɑːtəʊ/', 'n. 西红柿', '', ''),
+    _w('apple', '/ˈæpl/', 'n. 苹果', '', ''),
+    _w('how many', '/haʊ ˈmeni/', '多少（可数）', 'How many apple trees do you have?', '你有多少棵苹果树？'),
+    _w('only', '/ˈəʊnli/', 'adv. 只；仅', 'Only two.', '只有两棵。'),
+    _w('kind', '/kaɪnd/', 'n. 种类', 'You can see many kinds of animals.', '你可以看到很多种动物。'),
+  ]);
+
+  // ── Unit 1: You and Me ─────────────────────────────────
+  final u7aU1 = await DbService.insertUnit(g7a, 'Unit 1: You and Me', 4);
+  await _insertWords(u7aU1, [
+    _w('make friends', '/meɪk frendz/', '交朋友', '', ''),
+    _w('get to know', '/ɡet tə nəʊ/', '认识；了解', '', ''),
+    _w('full', '/fʊl/', 'adj. 完整的；满的', '', ''),
+    _w('full name', '/fʊl neɪm/', '全名', 'What\'s your full name?', '你的全名是什么？'),
+    _w('grade', '/ɡreɪd/', 'n. 年级；等级', 'I\'m in Class 1, Grade 7.', '我在七年级一班。'),
+    _w('last name', '/lɑːst neɪm/', '姓氏', 'Smith is my last name.', '史密斯是我的姓。'),
+    _w('classmate', '/ˈklɑːsmeɪt/', 'n. 同班同学', 'Peter is my classmate.', '彼得是我的同班同学。'),
+    _w('class teacher', '/klɑːs ˈtiːtʃər/', '班主任', 'Who\'s your class teacher?', '谁是你们的班主任？'),
+    _w('first name', '/fɜːrst neɪm/', '名字', 'Her first name is Emma.', '她的名字叫埃玛。'),
+    _w('mistake', '/mɪˈsteɪk/', 'n. 错误；失误', 'Everyone makes mistakes.', '每个人都会犯错。'),
+    _w('country', '/ˈkʌntri/', 'n. 国家', 'China is a big country.', '中国是一个大国。'),
+    _w('same', '/seɪm/', 'adj. 相同的', 'Are Meimei and Peter in the same class?', '梅梅和彼得在同一个班吗？'),
+    _w('twin', '/twɪn/', 'n.&adj. 双胞胎之一', '', ''),
+    _w('both', '/bəʊθ/', 'adj.&pron. 两个；两个都', 'Tom and I are both in the school band.', '汤姆和我都在学校乐队。'),
+    _w('band', '/bænd/', 'n. 乐队', 'Tom and I are both in the school band.', '汤姆和我都在学校乐队。'),
+    _w('pot', '/pɒt/', 'n. 锅', '', ''),
+    _w('a lot', '/ə lɒt/', '很；非常', 'Thanks a lot!', '非常感谢！'),
+    _w('tofu', '/ˈtəʊfuː/', 'n. 豆腐', 'Mapo tofu is delicious.', '麻婆豆腐很好吃。'),
+    _w('parrot', '/ˈpærət/', 'n. 鹦鹉', 'The parrot can talk.', '那只鹦鹉会说话。'),
+    _w('guitar', '/ɡɪˈtɑːr/', 'n. 吉他', 'He plays the guitar very well.', '他弹吉他弹得很好。'),
+    _w('tennis', '/ˈtenɪs/', 'n. 网球', 'I like playing tennis.', '我喜欢打网球。'),
+    _w('post', '/pəʊst/', 'n.&v. 帖子；邮政；邮寄；发布', 'I saw your post online.', '我在网上看到了你的帖子。'),
+    _w('even', '/ˈiːvn/', 'adv. 甚至；连；愈加', 'Even a child can do it.', '连小孩都能做。'),
+    _w('hey', '/heɪ/', 'interj. 嘿；喂', 'Hey, how are you?', '嘿，你好吗？'),
+    _w('play the guitar', '/pleɪ ðə ɡɪˈtɑːr/', '弹吉他', 'Can you play the guitar?', '你会弹吉他吗？'),
+    _w('would', '/wʊd/', 'modal v. 想(用于礼貌邀请)；将会', 'Would you like some tea?', '你想喝点茶吗？'),
+    _w('would like to', '/wʊd laɪk tə/', '表示愿意；喜欢', 'Would you like to be my friend?', '你愿意做我的朋友吗？'),
+    _w('information', '/ˌɪnfəˈmeɪʃn/', 'n. 信息；消息', 'Can you give me some information?', '你能给我一些信息吗？'),
+    _w('hobby', '/ˈhɒbi/', 'n. 业余爱好', 'My hobby is reading books.', '我的爱好是读书。'),
+    _w('hot pot', '/hɒt pɒt/', '火锅', 'Let\'s eat hot pot!', '我们吃火锅吧！'),
+    _w('live', '/lɪv/', 'v. 居住；生活', 'Now she lives in Chengdu with her parents.', '现在她和父母住在成都。'),
+    _w('parent', '/ˈpeərənt/', 'n. 父(母)亲', 'Now she lives in Chengdu with her parents.', '现在她和父母住在成都。'),
+    _w('where', '/weər/', 'adv. 在哪里', 'Where is Mr Smith from?', '史密斯先生来自哪里？'),
+    _w('from', '/frɒm/', 'prep. 来自', 'He\'s from the US.', '他来自美国。'),
+  ]);
+
+  // ── Unit 2: We're Family! ──────────────────────────────
+  final u7aU2 = await DbService.insertUnit(g7a, 'Unit 2: We\'re Family!', 5);
+  await _insertWords(u7aU2, [
+    _w('mean', '/miːn/', 'v. 意思是；打算', '', ''),
+    _w('husband', '/ˈhʌzbənd/', 'n. 丈夫', '', ''),
+    _w('bat', '/bæt/', 'n. 球棒；球拍', '', ''),
+    _w('ping-pong bat', '/ˈpɪŋ pɒŋ bæt/', '乒乓球拍', 'They have some nice ping-pong bats.', '他们有一些很好的乒乓球拍。'),
+    _w('play ping-pong', '/pleɪ ˈpɪŋ pɒŋ/', '打乒乓球', 'Teng Fei and his grandfather play ping-pong every week.', '腾飞和他的爷爷每周打乒乓球。'),
+    _w('every day', '/ˈevri deɪ/', '每天', '', ''),
+    _w('together', '/təˈɡeðər/', 'adv. 在一起；共同', '', ''),
+    _w('fishing rod', '/ˈfɪʃɪŋ rɒd/', '钓竿', 'Teng Fei\'s father has a fishing rod.', '腾飞的爸爸有一根钓竿。'),
+    _w('spend', '/spend/', 'v. 花(时间、钱等)', 'Does your father spend a lot of time fishing?', '你爸爸花很多时间钓鱼吗？'),
+    _w('a lot of', '/ə lɒt ɒv/', '大量；许多', 'Does your father spend a lot of time fishing?', '你爸爸花很多时间钓鱼吗？'),
+    _w('really', '/ˈriːəli/', 'adv. 非常；确实；真正地', '', ''),
+    _w('activity', '/ækˈtɪvəti/', 'n. 活动', '', ''),
+    _w('chess', '/tʃes/', 'n. 国际象棋', '', ''),
+    _w('Chinese chess', '/tʃaɪˈniːz tʃes/', '中国象棋', '', ''),
+    _w('funny', '/ˈfʌni/', 'adj. 好笑的；奇怪的', '', ''),
+    _w('laugh', '/lɑːf/', 'v.&n. 笑；发笑；笑声', '', ''),
+    _w('different', '/ˈdɪfrənt/', 'adj. 不同的', '', ''),
+    _w('violin', '/ˌvaɪəˈlɪn/', 'n. 小提琴', '', ''),
+    _w('have fun', '/hæv fʌn/', '玩得高兴', '', ''),
+    _w('pink', '/pɪŋk/', 'adj.&n. 粉红色(的)', '', ''),
+    _w('hat', '/hæt/', 'n. 帽子', '', ''),
+    _w('handsome', '/ˈhænsəm/', 'adj. 英俊的', '', ''),
+    _w('knee', '/niː/', 'n. 膝；膝盖', '', ''),
+    _w('at night', '/æt naɪt/', '在夜晚', '', ''),
+    _w('in the middle', '/ɪn ðə ˈmɪdl/', '中间；中部', '', ''),
+    _w('grandchild', '/ˈɡræntʃaɪld/', 'n. (外)孙子；(外)孙女', '', ''),
+    _w('son', '/sʌn/', 'n. 儿子', '', ''),
+    _w('next to', '/nekst tə/', '紧邻；在……近旁', '', ''),
+    _w('hike', '/haɪk/', 'v.&n. 远足；徒步旅行', '', ''),
+    _w('go hiking', '/ɡəʊ ˈhaɪkɪŋ/', '远足；徒步旅行', '', ''),
+    _w('family', '/ˈfæməli/', 'n. 家庭', 'We\'re a big family.', '我们是一个大家庭。'),
+    _w('grandfather', '/ˈɡrænfɑːðər/', 'n. (外)祖父', 'Teng Fei and his grandfather play ping-pong every week.', '腾飞和他的爷爷每周打乒乓球。'),
+    _w('grandmother', '/ˈɡrænmʌðər/', 'n. (外)祖母', '', ''),
+    _w('love', '/lʌv/', 'v.&n. 喜爱；热爱', 'Teng Fei\'s grandfather loves sport.', '腾飞的爷爷热爱运动。'),
+    _w('sport', '/spɔːrt/', 'n. 运动', 'Teng Fei\'s grandfather loves sport.', '腾飞的爷爷热爱运动。'),
+    _w('piano', '/piˈænəʊ/', 'n. 钢琴', 'Do you play the piano?', '你会弹钢琴吗？'),
+    _w('play the piano', '/pleɪ ðə piˈænəʊ/', '弹钢琴', 'Do you play the piano?', '你会弹钢琴吗？'),
+    _w('father', '/ˈfɑːðər/', 'n. 父亲', 'Does your father spend a lot of time fishing?', '你爸爸花很多时间钓鱼吗？'),
+    _w('mother', '/ˈmʌðər/', 'n. 母亲', 'Does your mother have a piano?', '你妈妈有钢琴吗？'),
+    _w('fish', '/fɪʃ/', 'v.&n. 钓鱼；鱼', 'Does your father spend a lot of time fishing?', '你爸爸花很多时间钓鱼吗？'),
+    _w('every week', '/ˈevri wiːk/', '每周', 'Teng Fei and his grandfather play ping-pong every week.', '腾飞和他的爷爷每周打乒乓球。'),
+  ]);
+
+  // ── Unit 3: My School ──────────────────────────────────
+  final u7aU3 = await DbService.insertUnit(g7a, 'Unit 3: My School', 6);
+  await _insertWords(u7aU3, [
+    _w('hall', '/hɔːl/', 'n. 礼堂；大厅', '', ''),
+    _w('dining hall', '/ˈdaɪnɪŋ hɔːl/', '餐厅', '', ''),
+    _w('in front of', '/ɪn frʌnt əv/', '在……前面', 'There are some trees in front of the sports field.', '运动场前面有一些树。'),
+    _w('building', '/ˈbɪldɪŋ/', 'n. 建筑物；房子', '', ''),
+    _w('across', '/əˈkrɒs/', 'prep.&adv. 过；穿过', '', ''),
+    _w('across from', '/əˈkrɒs frɒm/', '在对面', '', ''),
+    _w('field', '/fiːld/', 'n. 场地；田地', '', ''),
+    _w('sports field', '/spɔːrts fiːld/', '运动场', 'There are some trees in front of the sports field.', '运动场前面有一些树。'),
+    _w('gym', '/dʒɪm/', 'n. 体育馆；健身房', '', ''),
+    _w('office', '/ˈɒfɪs/', 'n. 办公室', '', ''),
+    _w('large', '/lɑːrdʒ/', 'adj. 大的；大号的', '', ''),
+    _w('special', '/ˈspeʃl/', 'adj. 特别的；特殊的', '', ''),
+    _w('smart', '/smɑːrt/', 'adj. 智能的；聪明的', '', ''),
+    _w('whiteboard', '/ˈwaɪtbɔːrd/', 'n. 白板', 'Is there a whiteboard in your classroom?', '你的教室里有白板吗？'),
+    _w('put up', '/pʊt ʌp/', '张贴；搭建', '', ''),
+    _w('important', '/ɪmˈpɔːrtnt/', 'adj. 重要的', '', ''),
+    _w('notice', '/ˈnəʊtɪs/', 'n.&v. 通知；注意', '', ''),
+    _w('locker', '/ˈlɒkər/', 'n. 有锁存物柜', 'Are there any lockers?', '有储物柜吗？'),
+    _w('drawer', '/drɔːr/', 'n. 抽屉', '', ''),
+    _w('at the back (of)', '/æt ðə bæk/', '在(……)后面', '', ''),
+    _w('corner', '/ˈkɔːrnər/', 'n. 角；墙角；街角', '', ''),
+    _w('bookcase', '/ˈbʊkkeɪs/', 'n. 书架；书柜', 'They are next to the window.', '它们在窗户旁边。'),
+    _w('screen', '/skriːn/', 'n. 屏幕；银幕', '', ''),
+    _w('at school', '/æt skuːl/', '在学校', '', ''),
+    _w('different from', '/ˈdɪfrənt frɒm/', '与……不一样', '', ''),
+    _w('modern', '/ˈmɒdn/', 'adj. 现代的；当代的', '', ''),
+    _w('do exercises', '/duː ˈeksərsaɪzɪz/', '做体操', '', ''),
+    _w('amazing', '/əˈmeɪzɪŋ/', 'adj. 令人惊奇的', '', ''),
+    _w('raise', '/reɪz/', 'v. 使升高；提高', '', ''),
+    _w('flag', '/flæɡ/', 'n. 旗；旗帜', '', ''),
+    _w('most', '/məʊst/', 'adj.&pron.&adv. 大多数；最多', '', ''),
+    _w('change', '/tʃeɪndʒ/', 'v.&n. 改变；变化', '', ''),
+    _w('seat', '/siːt/', 'n. 座位', '', ''),
+    _w('delicious', '/dɪˈlɪʃəs/', 'adj. 美味的；可口的', '', ''),
+    _w('yours', '/jɔːrz/', 'pron. 你的；您的', '', ''),
+    _w('similar', '/ˈsɪmələr/', 'adj. 类似的；相像的', '', ''),
+    _w('similar to', '/ˈsɪmələr tə/', '类似的；相像的', '', ''),
+    _w('sound', '/saʊnd/', 'v.&n. 听起来；声音', '', ''),
+    _w('bye for now', '/baɪ fə naʊ/', '再见', '', ''),
+    _w('library', '/ˈlaɪbrəri/', 'n. 图书馆', 'Where is the library?', '图书馆在哪里？'),
+    _w('classroom', '/ˈklɑːsruːm/', 'n. 教室', 'Is there a whiteboard in your classroom?', '你的教室里有白板吗？'),
+    _w('shop', '/ʃɒp/', 'n. 商店', 'There is a shop between the buildings.', '楼之间有一家商店。'),
+    _w('between', '/bɪˈtwiːn/', 'prep. 在……之间', 'There is a shop between the buildings.', '楼之间有一家商店。'),
+    _w('science', '/ˈsaɪəns/', 'n. 科学', '', ''),
+    _w('window', '/ˈwɪndəʊ/', 'n. 窗', 'They are next to the window.', '它们在窗户旁边。'),
+  ]);
+
+  // ── Unit 4: My Favourite Subject ──────────────────────
+  final u7aU4 = await DbService.insertUnit(g7a, 'Unit 4: My Favourite Subject', 7);
+  await _insertWords(u7aU4, [
+    _w('biology', '/baɪˈɒlədʒi/', 'n. 生物学', 'Biology is difficult but important.', '生物很难但很重要。'),
+    _w('IT', '/ˌaɪ ˈtiː/', 'abbr. 信息技术', '', ''),
+    _w('geography', '/dʒiˈɒɡrəfi/', 'n. 地理(学)', 'I have art and geography today.', '今天我有美术和地理课。'),
+    _w('history', '/ˈhɪstri/', 'n. 历史；历史课', 'History is my favourite subject.', '历史是我最喜爱的科目。'),
+    _w('boring', '/ˈbɔːrɪŋ/', 'adj. 乏味的；令人生厌的', 'He doesn\'t like maths because it\'s boring to him.', '他不喜欢数学，因为对他来说很无聊。'),
+    _w('useful', '/ˈjuːsfl/', 'adj. 有用的；有益的', '', ''),
+    _w('exciting', '/ɪkˈsaɪtɪŋ/', 'adj. 令人激动的；使人兴奋的', '', ''),
+    _w('past', '/pɑːst/', 'n.&adj.&prep. 过去；过去的；在……之后', '', ''),
+    _w('good with', '/ɡʊd wɪð/', '灵巧的；善于应付……的', '', ''),
+    _w('number', '/ˈnʌmbər/', 'n. 数字；号码', '', ''),
+    _w('help sb with', '/help ˈsʌmbədi wɪð/', '帮助某人做(某事)', '', ''),
+    _w('reason', '/ˈriːzn/', 'n. 原因；理由', '', ''),
+    _w('listen to', '/ˈlɪsn tə/', '听；倾听', '', ''),
+    _w('good at', '/ɡʊd æt/', '擅长', '', ''),
+    _w('remember', '/rɪˈmembər/', 'v. 记住；记起', '', ''),
+    _w('as', '/æz/', 'prep.&conj. 如同；当……时；由于', '', ''),
+    _w('AM (a.m.)', '/ˌeɪ ˈem/', '上午', '', ''),
+    _w('PM (p.m.)', '/ˌpiː ˈem/', '下午；午后', '', ''),
+    _w('French', '/frentʃ/', 'n.&adj. 法语；法国的', '', ''),
+    _w('excellent', '/ˈeksələnt/', 'adj. 优秀的；极好的', '', ''),
+    _w('instrument', '/ˈɪnstrəmənt/', 'n. 器械；工具', '', ''),
+    _w('singer', '/ˈsɪŋər/', 'n. 歌手', '', ''),
+    _w('future', '/ˈfjuːtʃər/', 'n. 将来；未来', '', ''),
+    _w('in the future', '/ɪn ðə ˈfjuːtʃər/', '将来；未来', '', ''),
+    _w('term', '/tɜːrm/', 'n. 学期', '', ''),
+    _w('work out', '/wɜːrk aʊt/', '计算出；解决', '', ''),
+    _w('problem', '/ˈprɒbləm/', 'n. 难题；困难', '', ''),
+    _w('in class', '/ɪn klɑːs/', '课堂上', '', ''),
+    _w('magic', '/ˈmædʒɪk/', 'n.&adj. 魔法；有魔力的', '', ''),
+    _w('life', '/laɪf/', 'n. 生活；生命', '', ''),
+    _w('scientist', '/ˈsaɪəntɪst/', 'n. 科学家', '', ''),
+    _w('favourite', '/ˈfeɪvərɪt/', 'adj. 最喜爱的', 'History is my favourite subject.', '历史是我最喜爱的科目。'),
+    _w('subject', '/ˈsʌbdʒɪkt/', 'n. 科目；学科', 'History is my favourite subject.', '历史是我最喜爱的科目。'),
+    _w('English', '/ˈɪŋɡlɪʃ/', 'n. 英语', 'English is important.', '英语很重要。'),
+    _w('maths', '/mæθs/', 'n. 数学', 'He doesn\'t like maths.', '他不喜欢数学。'),
+    _w('Chinese', '/ˌtʃaɪˈniːz/', 'n.&adj. 汉语；中国的', 'I like Chinese because it is fun.', '我喜欢语文因为它有趣。'),
+    _w('art', '/ɑːrt/', 'n. 美术；艺术', 'I have art and geography today.', '今天我有美术和地理课。'),
+    _w('music', '/ˈmjuːzɪk/', 'n. 音乐', '', ''),
+    _w('teacher', '/ˈtiːtʃər/', 'n. 老师', 'My English teacher is really nice.', '我的英语老师非常好。'),
+    _w('difficult', '/ˈdɪfɪkəlt/', 'adj. 困难的', 'Biology is difficult but important.', '生物很难但很重要。'),
+    _w('because', '/bɪˈkɒz/', 'conj. 因为', 'I like Chinese because it is fun.', '我喜欢语文因为它有趣。'),
+  ]);
+
+  // ── Unit 5: Fun Clubs ──────────────────────────────────
+  final u7aU5 = await DbService.insertUnit(g7a, 'Unit 5: Fun Clubs', 8);
+  await _insertWords(u7aU5, [
+    _w('club', '/klʌb/', 'n. 俱乐部；社团', '', ''),
+    _w('join', '/dʒɔɪn/', 'v. 参加；加入', '', ''),
+    _w('choose', '/tʃuːz/', 'v. 选择；挑选', '', ''),
+    _w('drama', '/ˈdrɑːmə/', 'n. 戏剧；戏剧表演', '', ''),
+    _w('play Chinese chess', '/pleɪ tʃaɪˈniːz tʃes/', '下中国象棋', 'Can they play chess?', '他们会下棋吗？'),
+    _w('feeling', '/ˈfiːlɪŋ/', 'n. 感觉；情感', '', ''),
+    _w('news', '/njuːz/', 'n. 消息；新闻', '', ''),
+    _w('musical', '/ˈmjuːzɪkl/', 'adj. 音乐的；有音乐天赋的', '', ''),
+    _w('musical instrument', '/ˈmjuːzɪkl ˈɪnstrəmənt/', '乐器', 'Emma can\'t play any musical instruments.', '埃玛不会演奏任何乐器。'),
+    _w('exactly', '/ɪɡˈzæktli/', 'adv. 正是如此；准确地', '', ''),
+    _w('drum', '/drʌm/', 'n. 鼓', '', ''),
+    _w('ability', '/əˈbɪləti/', 'n. 能力；才能', '', ''),
+    _w('paint', '/peɪnt/', 'v.&n. 用颜料画；油漆', '', ''),
+    _w('climb', '/klaɪm/', 'v. 攀登；爬', '', ''),
+    _w('more', '/mɔːr/', 'adj.&pron. 更多(的)', '', ''),
+    _w('act', '/ækt/', 'v.&n. 扮演；行动；一幕', '', ''),
+    _w('act out', '/ækt aʊt/', '表演', '', ''),
+    _w('at home', '/æt həʊm/', '在家里', '', ''),
+    _w('interested', '/ˈɪntrəstɪd/', 'adj. 感兴趣的', '', ''),
+    _w('interested in', '/ˈɪntrəstɪd ɪn/', '对……感兴趣', '', ''),
+    _w('nature', '/ˈneɪtʃər/', 'n. 自然界；大自然', '', ''),
+    _w('beef', '/biːf/', 'n. 牛肉', '', ''),
+    _w('soon', '/suːn/', 'adv. 不久；很快', '', ''),
+    _w('than', '/ðæn/', 'prep.&conj. 比', '', ''),
+    _w('more than', '/mɔːr ðæn/', '多于', '', ''),
+    _w('mind', '/maɪnd/', 'n. 头脑；心思', '', ''),
+    _w('fall', '/fɔːl/', 'v.&n. 进入；掉落；秋天', '', ''),
+    _w('fall in love with', '/fɔːl ɪn lʌv wɪð/', '爱上……', '', ''),
+    _w('take photos', '/teɪk ˈfəʊtəʊz/', '拍照', '', ''),
+    _w('collect', '/kəˈlekt/', 'v. 收集；采集', '', ''),
+    _w('insect', '/ˈɪnsekt/', 'n. 昆虫', '', ''),
+    _w('discover', '/dɪˈskʌvər/', 'v. 发现；发觉', '', ''),
+    _w('wildlife', '/ˈwaɪldlaɪf/', 'n. 野生动物；野生生物', '', ''),
+    _w('can', '/kæn/', 'modal v. 能；会', 'Can you play ping-pong?', '你会打乒乓球吗？'),
+    _w('sing', '/sɪŋ/', 'v. 唱歌', 'Emma can sing well.', '埃玛唱歌很好。'),
+    _w('swim', '/swɪm/', 'v. 游泳', 'I can run fast, but I can\'t swim.', '我能跑得快，但不会游泳。'),
+    _w('run', '/rʌn/', 'v. 跑', 'I can run fast.', '我能跑得快。'),
+    _w('fast', '/fɑːst/', 'adv. 快地；迅速地', 'I can run fast.', '我能跑得快。'),
+    _w('well', '/wel/', 'adv. 好地', 'Emma can sing well.', '埃玛唱歌很好。'),
+  ]);
+
+  // ── Unit 6: A Day in the Life ─────────────────────────
+  final u7aU6 = await DbService.insertUnit(g7a, 'Unit 6: A Day in the Life', 9);
+  await _insertWords(u7aU6, [
+    _w('make use of', '/meɪk juːz ɒv/', '使用……；利用……', '', ''),
+    _w('shower', '/ˈʃaʊər/', 'n.&v. 淋浴；淋浴器；洗淋浴', 'He brushes his teeth and takes a shower.', '他刷牙然后洗淋浴。'),
+    _w('take a shower', '/teɪk ə ˈʃaʊər/', '淋浴', 'He takes a shower.', '他洗淋浴。'),
+    _w('get dressed', '/ɡet drest/', '穿衣服', '', ''),
+    _w('brush', '/brʌʃ/', 'v.&n. 刷；刷子；画笔', 'He brushes his teeth.', '他刷牙。'),
+    _w('tooth', '/tuːθ/', 'n. 牙齿 (pl. teeth)', 'He brushes his teeth.', '他刷牙。'),
+    _w('duty', '/ˈdjuːti/', 'n. 值班；职责', '', ''),
+    _w('on duty', '/ɒn ˈdjuːti/', '值班', '', ''),
+    _w('usually', '/ˈjuːʒuəli/', 'adv. 通常地；一般地', 'When do you usually get up?', '你通常什么时候起床？'),
+    _w('get up', '/ɡet ʌp/', '起床；站起', 'I usually get up at 6:30 a.m.', '我通常早上六点半起床。'),
+    _w('reporter', '/rɪˈpɔːrtər/', 'n. 记者', '', ''),
+    _w('around', '/əˈraʊnd/', 'prep.&adv. 大约；环绕；到处', '', ''),
+    _w('homework', '/ˈhəʊmwɜːrk/', 'n. 家庭作业', 'Sometimes I read books or do my homework.', '有时我读书或做作业。'),
+    _w('go to bed', '/ɡəʊ tə bed/', '上床睡觉', 'What time does Tom usually go to bed?', '汤姆通常几点上床睡觉？'),
+    _w('saying', '/ˈseɪɪŋ/', 'n. 谚语；格言', '', ''),
+    _w('rise', '/raɪz/', 'v.&n. 起床；升起；增长', '', ''),
+    _w('stay', '/steɪ/', 'v. 停留；待', '', ''),
+    _w('routine', '/ruːˈtiːn/', 'n. 常规', '', ''),
+    _w('restaurant', '/ˈrestrɒnt/', 'n. 餐馆；餐厅', '', ''),
+    _w('housework', '/ˈhaʊswɜːrk/', 'n. 家务劳动', '', ''),
+    _w('while', '/waɪl/', 'n.&conj. 一段时间；在……期间', '', ''),
+    _w('weekend', '/ˌwiːkˈend/', 'n. 周末', '', ''),
+    _w('daily', '/ˈdeɪli/', 'adj. 每日的；日常的', '', ''),
+    _w('daily routine', '/ˈdeɪli ruːˈtiːn/', '日常生活', '', ''),
+    _w('break', '/breɪk/', 'n.&v. 休息；(使)破碎', '', ''),
+    _w('Finnish', '/ˈfɪnɪʃ/', 'n.&adj. 芬兰语；芬兰的', '', ''),
+    _w('finish', '/ˈfɪnɪʃ/', 'v. 结束；完成', '', ''),
+    _w('hockey', '/ˈhɒki/', 'n. 曲棍球', '', ''),
+    _w('ice hockey', '/aɪs ˈhɒki/', '冰球运动；冰上曲棍球', '', ''),
+    _w('already', '/ɔːlˈredi/', 'adv. 已经；早已', '', ''),
+    _w('dark', '/dɑːrk/', 'adj. 昏暗的；深色的', '', ''),
+    _w('outside', '/ˌaʊtˈsaɪd/', 'adv.&adj.&prep. 在外面；外面的', '', ''),
+    _w('prepare', '/prɪˈpeər/', 'v. 把……准备好；准备', '', ''),
+    _w('time', '/taɪm/', 'n. 时间', 'What time do you usually get up?', '你通常几点起床？'),
+    _w('sometimes', '/ˈsʌmtaɪmz/', 'adv. 有时', 'Sometimes I read books or do my homework.', '有时我读书或做作业。'),
+    _w('before', '/bɪˈfɔːr/', 'prep. 在……之前', 'What does Peter do before breakfast?', '彼得在早餐前做什么？'),
+    _w('after', '/ˈɑːftər/', 'prep. 在……之后', 'What do you do after dinner?', '你晚饭后做什么？'),
+    _w('morning', '/ˈmɔːrnɪŋ/', 'n. 早晨', 'I usually get up at 6:30 a.m.', '我通常早上六点半起床。'),
+    _w('dinner', '/ˈdɪnər/', 'n. 晚餐；正餐', 'What do you do after dinner?', '你晚饭后做什么？'),
+    _w('breakfast', '/ˈbrekfəst/', 'n. 早餐', 'What does Peter do before breakfast?', '彼得在早餐前做什么？'),
+    _w('read', '/riːd/', 'v. 阅读', 'Sometimes I read books.', '有时我读书。'),
+    _w('book', '/bʊk/', 'n. 书', 'Sometimes I read books.', '有时我读书。'),
+    _w('Monday', '/ˈmʌndeɪ/', 'n. 星期一', 'They go on Monday afternoons.', '他们周一下午去。'),
+    _w('afternoon', '/ˌɑːftərˈnuːn/', 'n. 下午', 'They go on Monday afternoons.', '他们周一下午去。'),
+  ]);
+
+  // ── Unit 7: Happy Birthday! ────────────────────────────
+  final u7aU7 = await DbService.insertUnit(g7a, 'Unit 7: Happy Birthday!', 10);
+  await _insertWords(u7aU7, [
+    _w('celebrate', '/ˈselɪbreɪt/', 'v. 庆祝；庆贺', '', ''),
+    _w('surprise', '/sərˈpraɪz/', 'n.&v. 惊奇；使感到意外', '', ''),
+    _w('something', '/ˈsʌmθɪŋ/', 'pron. 某事；某物', '', ''),
+    _w('sale', '/seɪl/', 'n. 出售；销售', '', ''),
+    _w('kilo', '/ˈkiːləʊ/', 'n. 千克；公斤', 'Six yuan a kilo.', '六元一公斤。'),
+    _w('yoghurt', '/ˈjɒɡət/', 'n. 酸奶', '', ''),
+    _w('total', '/ˈtəʊtl/', 'n.&adj. 总数；总的', '', ''),
+    _w('price', '/praɪs/', 'n. 价格', '', ''),
+    _w('balloon', '/bəˈluːn/', 'n. 气球', '', ''),
+    _w('chocolate', '/ˈtʃɒklət/', 'n. 巧克力', '', ''),
+    _w('pizza', '/ˈpiːtsə/', 'n. 比萨饼', '', ''),
+    _w('list', '/lɪst/', 'v.&n. 列表；名单', '', ''),
+    _w('own', '/əʊn/', 'adj.&pron. 自己的；本人的', '', ''),
+    _w('example', '/ɪɡˈzɑːmpl/', 'n. 例子；范例', '', ''),
+    _w('for example', '/fɔːr ɪɡˈzɑːmpl/', '例如', '', ''),
+    _w('language', '/ˈlæŋɡwɪdʒ/', 'n. 语言', '', ''),
+    _w('international', '/ˌɪntərˈnæʃnəl/', 'adj. 国际的', '', ''),
+    _w('mark', '/mɑːrk/', 'v.&n. 做记号；记号', '', ''),
+    _w('date', '/deɪt/', 'n. 日期；日子', '', ''),
+    _w('national', '/ˈnæʃnəl/', 'adj. 国家的；民族的', '', ''),
+    _w('found', '/faʊnd/', 'v. 创建；创立', '', ''),
+    _w('make a wish', '/meɪk ə wɪʃ/', '许愿', '', ''),
+    _w('village', '/ˈvɪlɪdʒ/', 'n. 村庄；村镇', '', ''),
+    _w('grow', '/ɡrəʊ/', 'v. 成长；长大；增长', '', ''),
+    _w('blow', '/bləʊ/', 'v. 吹；刮', '', ''),
+    _w('blow out', '/bləʊ aʊt/', '吹灭', '', ''),
+    _w('enjoy', '/ɪnˈdʒɔɪ/', 'v. 享受……的乐趣', '', ''),
+    _w('height', '/haɪt/', 'n. 身高；高度', '', ''),
+    _w('later', '/ˈleɪtər/', 'adv.&adj. 以后(的)；后来(的)', '', ''),
+    _w('next time', '/nekst taɪm/', '下次', '', ''),
+    _w('who', '/huː/', 'pron. 谁；什么人', '', ''),
+    _w('birthday', '/ˈbɜːrθdeɪ/', 'n. 生日', 'When is your birthday?', '你的生日是什么时候？'),
+    _w('August', '/ˈɔːɡəst/', 'n. 八月', 'It\'s on 2nd August.', '它在八月二日。'),
+    _w('how old', '/haʊ əʊld/', '多大年纪', 'How old are you?', '你多大了？'),
+    _w('twelve', '/twelv/', 'num. 十二', 'I\'m twelve.', '我十二岁。'),
+    _w('want', '/wɒnt/', 'v. 想要', 'What do you want to do on her birthday?', '你想在她生日那天做什么？'),
+    _w('song', '/sɒŋ/', 'n. 歌', 'I want to sing a song for her.', '我想为她唱首歌。'),
+    _w('how much', '/haʊ mʌtʃ/', '多少（钱/不可数）', 'How much are those oranges?', '那些橙子多少钱？'),
+    _w('yuan', '/juˈɑːn/', 'n. 元', 'Six yuan a kilo.', '六元一公斤。'),
+    _w('kilo', '/ˈkiːləʊ/', 'n. 千克', 'How many kilos do you want?', '你想要多少公斤？'),
+    _w('orange', '/ˈɒrɪndʒ/', 'n. 橙子', 'How much are those oranges?', '那些橙子多少钱？'),
+    _w('fifth', '/fɪfθ/', 'num. 第五', '', ''),
+    _w('second', '/ˈsekənd/', 'num. 第二', 'It\'s on 2nd August.', '它在八月二日。'),
+  ]);
+
+  // ═══════════════════════════════════════════════════════════
+  // 以下年级暂时保留框架，词汇后续补充
+  // ═══════════════════════════════════════════════════════════
+
+  // ── 七年级下册 ─────────────────────────────────────────
+  final g7b = await DbService.insertGrade('七年级下册', 2);
+  final unitNames7b = [
+    'Unit 1: Animal Friends', 'Unit 2: No Rules, No Order',
+    'Unit 3: Keep Fit', 'Unit 4: Eat Well', 'Unit 5: Here and Now',
+    'Unit 6: Rain or Shine', 'Unit 7: A Day to Remember',
+    'Unit 8: Once upon a Time',
+  ];
+  for (int i = 0; i < unitNames7b.length; i++) {
+    await DbService.insertUnit(g7b, unitNames7b[i], i + 1);
+  }
+
+  // ── 八年级上册 ─────────────────────────────────────────
+  final g8a = await DbService.insertGrade('八年级上册', 3);
+  final unitNames8a = [
+    'Unit 1: Where Did You Go on Vacation?',
+    'Unit 2: How Often Do You Exercise?',
+    'Unit 3: I\'m More Outgoing Than My Sister',
+    'Unit 4: What\'s the Best Movie Theater?',
+    'Unit 5: Do You Want to Watch a Game Show?',
+    'Unit 6: I\'m Going to Study Computer Science',
+    'Unit 7: Will People Have Robots?',
+    'Unit 8: How Do You Make a Banana Milk Shake?',
+    'Unit 9: Can You Come to My Party?',
+    'Unit 10: If You Go to the Party, You\'ll Have a Great Time!',
+  ];
+  for (int i = 0; i < unitNames8a.length; i++) {
+    await DbService.insertUnit(g8a, unitNames8a[i], i + 1);
+  }
+
+  // ── 八年级下册 ─────────────────────────────────────────
+  final g8b = await DbService.insertGrade('八年级下册', 4);
+  final unitNames8b = [
+    'Unit 1: What\'s the Matter?',
+    'Unit 2: I\'ll Help to Clean Up the City Parks',
+    'Unit 3: Could You Please Clean Your Room?',
+    'Unit 4: Why Don\'t You Talk to Your Parents?',
+    'Unit 5: What Were You Doing When the Rainstorm Came?',
+    'Unit 6: An Old Man Tried to Move the Mountains',
+    'Unit 7: What\'s the Highest Mountain in the World?',
+    'Unit 8: Have You Read Treasure Island Yet?',
+    'Unit 9: Have You Ever Been to a Museum?',
+    'Unit 10: I\'ve Had This Bike for Three Years',
+  ];
+  for (int i = 0; i < unitNames8b.length; i++) {
+    await DbService.insertUnit(g8b, unitNames8b[i], i + 1);
+  }
+
+  // ── 九年级全一册 ───────────────────────────────────────
+  final g9 = await DbService.insertGrade('九年级全一册', 5);
+  final unitNames9 = [
+    'Unit 1: How Can We Become Good Learners?',
+    'Unit 2: I Think That Mooncakes Are Delicious!',
+    'Unit 3: Could You Please Tell Me Where the Restrooms Are?',
+    'Unit 4: I Used to Be Afraid of the Dark',
+    'Unit 5: What Are the Shirts Made Of?',
+    'Unit 6: When Was It Invented?',
+    'Unit 7: Teenagers Should Be Allowed to Choose Their Own Clothes',
+    'Unit 8: It Must Belong to Carla',
+    'Unit 9: I Like Music That I Can Dance To',
+    'Unit 10: You\'re Supposed to Shake Hands',
+    'Unit 11: Sad Movies Make Me Cry',
+    'Unit 12: Life Is Full of the Unexpected',
+    'Unit 13: We\'re Trying to Save the Earth!',
+    'Unit 14: I Remember Meeting All of You in Grade 7',
+  ];
+  for (int i = 0; i < unitNames9.length; i++) {
+    await DbService.insertUnit(g9, unitNames9[i], i + 1);
+  }
+}
+
+// ── helpers ──────────────────────────────────────────────────
+Word _w(String word, String pronunciation, String meaning, String sentence,
+    String sentenceCn) {
+  return Word(
+    unitId: 0,
+    word: word,
+    pronunciation: pronunciation,
+    meaning: meaning,
+    sentence: sentence,
+    sentenceCn: sentenceCn,
+  );
+}
+
+Future<void> _insertWords(int unitId, List<Word> words) async {
+  await DbService.insertWords(
+    words.map((w) => w.copyWith(unitId: unitId)).toList(),
+  );
+}
