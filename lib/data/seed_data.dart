@@ -26,10 +26,19 @@ Future<void> seedDatabase() async {
 
   await _loadJsonGrade('assets/PEPChuZhong9_1.json', '九年级全一册', 5);
 
-  // ── 高中（框架，待补充） ─────────────────────────────
-  await DbService.insertGrade('高一', 6);
-  await DbService.insertGrade('高二', 7);
-  await DbService.insertGrade('高三', 8);
+  // ── 高中（PEP 人教版） ───────────────────────────────
+  final g10 = await DbService.insertGrade('高一', 6);
+  for (int i = 1; i <= 4; i++) {
+    await _loadJsonGrade('assets/PEPGaoZhong_$i.json', '', -1, existingGradeId: g10, startSortOrder: 99);
+  }
+  final g11 = await DbService.insertGrade('高二', 7);
+  for (int i = 5; i <= 8; i++) {
+    await _loadJsonGrade('assets/PEPGaoZhong_$i.json', '', -1, existingGradeId: g11, startSortOrder: 99);
+  }
+  final g12 = await DbService.insertGrade('高三', 8);
+  for (int i = 9; i <= 11; i++) {
+    await _loadJsonGrade('assets/PEPGaoZhong_$i.json', '', -1, existingGradeId: g12, startSortOrder: 99);
+  }
 
   // CET-4 / CET-6
   final cet4 = await DbService.insertGrade('CET-4 四级', 9);

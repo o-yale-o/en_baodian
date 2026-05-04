@@ -68,6 +68,17 @@ flutter:
     - assets/PEPChuZhong8_1.json
     - assets/PEPChuZhong8_2.json
     - assets/PEPChuZhong9_1.json
+    - assets/PEPGaoZhong_1.json
+    - assets/PEPGaoZhong_2.json
+    - assets/PEPGaoZhong_3.json
+    - assets/PEPGaoZhong_4.json
+    - assets/PEPGaoZhong_5.json
+    - assets/PEPGaoZhong_6.json
+    - assets/PEPGaoZhong_7.json
+    - assets/PEPGaoZhong_8.json
+    - assets/PEPGaoZhong_9.json
+    - assets/PEPGaoZhong_10.json
+    - assets/PEPGaoZhong_11.json
     - assets/CET4_1.json
     - assets/CET4_2.json
     - assets/CET4_3.json
