@@ -18,6 +18,8 @@ class GradeTreeWidget extends StatefulWidget {
 class GradeTreeWidgetState extends State<GradeTreeWidget> {
   List<Map<String, dynamic>> _grades = [];
   Map<int, List<Map<String, dynamic>>> _unitsCache = {};
+  Map<int, int> _wordCounts = {};
+  Map<int, int> _gradeCounts = {};
   int? _selectedUnitId;
   bool _hardBookSelected = false;
   int _hardCount = 0;
@@ -25,22 +27,30 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
   @override
   void initState() {
     super.initState();
-    _loadGrades();
-    _updateHardCount();
+    _loadData();
   }
 
-  Future<void> _loadGrades() async {
+  Future<void> _loadData() async {
     final grades = await DbService.getGrades();
-    setState(() => _grades = grades);
+    final counts = await DbService.getWordCounts();
+    final gradeCounts = <int, int>{};
+    for (final g in grades) {
+      gradeCounts[g['id'] as int] = await DbService.getGradeWordCount(g['id'] as int);
+    }
+    final hard = await DbService.countHardWords();
+    if (mounted) {
+      setState(() {
+        _grades = grades;
+        _wordCounts = counts;
+        _gradeCounts = gradeCounts;
+        _hardCount = hard;
+      });
+    }
   }
 
   Future<void> refreshHardCount() async {
     final count = await DbService.countHardWords();
     if (mounted) setState(() => _hardCount = count);
-  }
-
-  Future<void> _updateHardCount() async {
-    await refreshHardCount();
   }
 
   Future<List<Map<String, dynamic>>> _loadUnits(int gradeId) async {
@@ -100,7 +110,7 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
             return ExpansionTile(
               leading: const Icon(Icons.menu_book, size: 20),
               title: Text(
-                grade['name'] as String,
+                '${grade['name']} (${_gradeCounts[grade['id']] ?? 0})',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               children: [
@@ -123,7 +133,8 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
                           contentPadding: const EdgeInsets.only(left: 56, right: 8),
                           selected: isSelected,
                           selectedTileColor: Colors.blue.withAlpha(25),
-                          title: Text(unitName,
+                          title: Text(
+                              '$unitName (${_wordCounts[unitId] ?? 0})',
                               style: TextStyle(
                                   fontSize: 12,
                                   fontWeight:

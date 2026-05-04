@@ -219,6 +219,20 @@ class DbService {
     ''', [unitId]);
   }
 
+  static Future<Map<int, int>> getWordCounts() async {
+    final d = await db;
+    final rows = await d.rawQuery(
+      'SELECT unit_id, COUNT(*) as cnt FROM words GROUP BY unit_id');
+    return {for (final r in rows) r['unit_id'] as int: r['cnt'] as int};
+  }
+
+  static Future<int> getGradeWordCount(int gradeId) async {
+    final d = await db;
+    return Sqflite.firstIntValue(await d.rawQuery(
+      'SELECT COUNT(*) FROM words WHERE unit_id IN (SELECT id FROM units WHERE grade_id = ?)',
+      [gradeId])) ?? 0;
+  }
+
   // ── seed ────────────────────────────────────────────────────
 
   static Future<bool> needsSeed() async {
