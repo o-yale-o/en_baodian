@@ -85,6 +85,8 @@ flutter:
     - assets/CET6_1.json
     - assets/CET6_2.json
     - assets/CET6_3.json
+    - assets/Level8_1.json
+    - assets/Level8_2.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

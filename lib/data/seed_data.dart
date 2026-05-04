@@ -50,8 +50,10 @@ Future<void> seedDatabase() async {
     await _loadJsonGrade(f, '', -1, existingGradeId: cet6, startSortOrder: 99);
   }
 
-  // 专八（框架，待补充）
-  await DbService.insertGrade('专八', 11);
+  // 专八
+  final tem8 = await DbService.insertGrade('专八', 11);
+  await _loadJsonGrade('assets/Level8_1.json', '', -1, existingGradeId: tem8, startSortOrder: 99);
+  await _loadJsonGrade('assets/Level8_2.json', '', -1, existingGradeId: tem8, startSortOrder: 99);
 }
 
 // ═══════════════════════════════════════════════════════════════
