@@ -2,6 +2,17 @@
 
 跨平台英语单词学习应用，支持 Windows 桌面与 Android 手机。
 
+## 界面
+
+![单词宝典界面](setup/界面.jpg)
+
+## 下载运行
+
+| 平台 | 位置 | 说明 |
+|------|------|------|
+| Windows | [setup/windows/](setup/windows/) | 解压后双击 `en_baodian.exe`，需安装 [VC++ 运行时](https://aka.ms/vs/17/release/vc_redist.x64.exe) |
+| Android | [setup/android/单词宝典.apk](setup/android/单词宝典.apk) | 直接安装，首次启动需允许"安装未知应用" |
+
 ## 开发背景
 
 ### 痛点
