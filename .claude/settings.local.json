@@ -54,7 +54,26 @@
       "Bash(flutter build *)",
       "Bash(rm -rf \"build/publish/win\")",
       "Bash(mkdir -p \"build/publish/win\")",
-      "Bash(cp -r \"build/windows/x64/runner/Release/\"* \"build/publish/win/\")"
+      "Bash(cp -r \"build/windows/x64/runner/Release/\"* \"build/publish/win/\")",
+      "Bash(cmd.exe /c \"del /f /q \\\\\"C:\\\\\\\\Users\\\\\\\\Lusp\\\\\\\\.gradle\\\\\\\\wrapper\\\\\\\\dists\\\\\\\\gradle-8.12-all\\\\\\\\ejduaidbjup3bmmkhw3rie4zb\\\\\\\\gradle-8.12-all.zip.lck\\\\\"\")",
+      "Bash(cmd.exe /c \"rmdir /s /q \\\\\"C:\\\\\\\\Users\\\\\\\\Lusp\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Android\\\\\\\\Sdk\\\\\\\\ndk\\\\\\\\27.0.12077973\\\\\"\")",
+      "Bash(flutter devices *)",
+      "Bash(flutter install *)",
+      "Bash(adb -s 2410DPN6CC install \"build/app/outputs/flutter-apk/app-debug.apk\")",
+      "Bash(flutter run *)",
+      "Bash(NO_PROXY=localhost,127.0.0.1 flutter build windows --release)",
+      "Bash(adb -s 2410DPN6CC install -r \"build/app/outputs/flutter-apk/app-debug.apk\")",
+      "Bash(adb devices *)",
+      "Bash(adb -s 5f3f8012 install -r \"build/app/outputs/flutter-apk/app-debug.apk\")",
+      "Bash(adb -s 5f3f8012 install -r \"d:/todo/en_baodian/build/app/outputs/flutter-apk/app-debug.apk\")",
+      "Bash(adb -s 5f3f8012 logcat -s flutter:TTS)",
+      "Bash(kill %1)",
+      "Bash(adb -s 5f3f8012 logcat -s flutter stdout stderr EnBaodianTTS -d)",
+      "Bash(curl -s -o /tmp/baidu_test.mp3 'https://fanyi.baidu.com/gettts?lan=en&text=Would%20you%20like%20to%20be%20my%20friend&spd=3' --connect-timeout 5 --max-time 10 -w \"%{http_code} %{size_download}\")",
+      "Read(//tmp/**)",
+      "Bash(adb -s 5f3f8012 uninstall com.example.en_baodian)",
+      "Bash(adb -s 5f3f8012 install \"d:/todo/en_baodian/build/app/outputs/flutter-apk/app-debug.apk\")",
+      "Bash(curl -s -o /tmp/baidu_zh.mp3 'https://fanyi.baidu.com/gettts?lan=zh&text=%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C&spd=3' --connect-timeout 5 --max-time 10 -w \"HTTP %{http_code} size %{size_download}\")"
     ]
   }
 }

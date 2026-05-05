@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/word.dart';
 import '../services/db_service.dart';
 import '../services/tts_service.dart';
@@ -23,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   bool _isHardMode = false;
   int? _currentUnitId;
   bool _autoPlaying = false;
+  bool _autoPaused = false;
 
   bool _isPassed = false;
   bool _isHard = false;
@@ -35,6 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _onUnitSelected(int unitId, String unitName) async {
     _currentUnitId = unitId;
+    _dismissTree();
     await _loadWords(
       () => DbService.getWordsByUnit(unitId, skipPassed: true),
       unitName,
@@ -44,16 +48,23 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _onUnitAutoPlay(int unitId, String unitName) async {
     _treeKey.currentState?.selectUnit(unitId);
-    await _onUnitSelected(unitId, unitName);
+    _dismissTree();
+    await _loadWords(
+      () => DbService.getWordsByUnit(unitId, skipPassed: true),
+      unitName,
+      false,
+    );
     if (mounted) _startAutoPlay();
   }
 
   Future<void> _onGradeAutoPlay(int gradeId, String gradeName) async {
+    _dismissTree();
     await _onGradeSelected(gradeId, gradeName);
     if (mounted) _startAutoPlay();
   }
 
   Future<void> _onHardBookAutoPlay() async {
+    _dismissTree();
     await _onHardBookSelected();
     if (mounted) _startAutoPlay();
   }
@@ -69,6 +80,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _onHardBookSelected() async {
     _currentUnitId = null;
+    _dismissTree();
     await _loadWords(
       () => DbService.getHardWords(),
       '难题本 — 全局',
@@ -167,9 +179,12 @@ class _HomePageState extends State<HomePage> {
 
   void _preloadCurrent() {
     if (_words.isEmpty) return;
-    final w = _words[_currentIndex];
-    _tts.preload(w.word);
-    _tts.preload(w.sentence);
+    // Preload current + next 3 words and sentences
+    for (int i = _currentIndex; i < _currentIndex + 4 && i < _words.length; i++) {
+      final w = _words[i];
+      _tts.preload(w.word);
+      _tts.preload(w.sentence);
+    }
   }
 
   void _prevWord() {
@@ -235,11 +250,30 @@ class _HomePageState extends State<HomePage> {
   Future<void> _startAutoPlay() async {
     if (_words.isEmpty) return;
     setState(() => _autoPlaying = true);
+    WakelockPlus.enable();
+    _tts.startForegroundService();
+    // Preload first batch of words + sentences before starting
+    for (int i = 0; i < _words.length && i < 15; i++) {
+      _tts.preload(_words[i].word);
+      _tts.preload(_words[i].sentence);
+    }
+    await Future.delayed(const Duration(seconds: 5)); // let downloads finish
     await _playLoop();
+    WakelockPlus.disable();
+    _tts.stopForegroundService();
+  }
+
+  void _togglePause() {
+    setState(() => _autoPaused = !_autoPaused);
   }
 
   Future<void> _playLoop() async {
     while (_autoPlaying && _words.isNotEmpty && _currentIndex < _words.length) {
+      // Pause check
+      while (_autoPaused && _autoPlaying) {
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+      if (!_autoPlaying) break;
       final w = _words[_currentIndex];
       _refreshProgress();
       _preloadCurrent();
@@ -283,42 +317,12 @@ class _HomePageState extends State<HomePage> {
     if (mounted) setState(() => _autoPlaying = false);
   }
 
-  Widget _smallActionBtn({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          border: Border.all(color: active ? color : Colors.grey[300]!),
-          borderRadius: BorderRadius.circular(6),
-          color: active ? color.withAlpha(20) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: active ? color : Colors.grey[500]),
-            const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    color: active ? color : Colors.grey[600])),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _stopAutoPlay() {
     _autoPlaying = false;
+    _autoPaused = false;
     _tts.stop();
+    WakelockPlus.disable();
+    _tts.stopForegroundService();
     setState(() {});
   }
 
@@ -344,39 +348,90 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('英语宝典'),
+        title: const Text('单词宝典'),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body: Row(
-        children: [
-          // ── 左侧 ──────────────────────────
-          SizedBox(
-            width: 220,
-            child: Container(
-              color: Colors.grey[50],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: GradeTreeWidget(
-                      key: _treeKey,
-                      onUnitSelected: _onUnitSelected,
-                      onUnitAutoPlay: _onUnitAutoPlay,
-                      onGradeSelected: _onGradeAutoPlay,
-                      onHardBookSelected: _onHardBookSelected,
-                      onHardBookAutoPlay: _onHardBookAutoPlay,
-                    ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 600;
+          if (isWide) {
+            return Row(
+              children: [
+                SizedBox(
+                  width: 220,
+                  child: Container(
+                    color: Colors.grey[50],
+                    child: _buildTreePanel(),
                   ),
-                ],
-              ),
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildContent()),
+              ],
+            );
+          }
+          // Mobile: full-screen card
+          return Column(
+            children: [
+              Expanded(child: _buildContent()),
+            ],
+          );
+        },
+      ),
+      // Mobile bottom bar
+      bottomNavigationBar: Builder(
+        builder: (context) {
+          final isWide = MediaQuery.of(context).size.width >= 600;
+          if (isWide) return const SizedBox.shrink();
+          return BottomAppBar(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton.icon(
+                  onPressed: () => _showTreeSheet(context),
+                  icon: const Icon(Icons.menu_book, size: 18),
+                  label: const Text('词汇'),
+                ),
+              ],
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTreePanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: GradeTreeWidget(
+            key: _treeKey,
+            onUnitSelected: _onUnitSelected,
+            onUnitAutoPlay: _onUnitAutoPlay,
+            onGradeSelected: _onGradeAutoPlay,
+            onHardBookSelected: _onHardBookSelected,
+            onHardBookAutoPlay: _onHardBookAutoPlay,
           ),
-          const VerticalDivider(width: 1),
-          // ── 右侧 ──────────────────────────
-          Expanded(child: _buildContent()),
-        ],
+        ),
+      ],
+    );
+  }
+
+  void _dismissTree() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _showTreeSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.75,
+        child: _buildTreePanel(),
       ),
     );
   }
@@ -438,31 +493,46 @@ class _HomePageState extends State<HomePage> {
 
     return Column(
       children: [
-        const SizedBox(height: 6),
+        const SizedBox(height: 2),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               _currentLabel,
-              style:
-                  Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[500]),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[500]),
             ),
             if (_isHardWordOverlay())
               const Padding(
-                padding: EdgeInsets.only(left: 6),
+                padding: EdgeInsets.only(left: 4),
                 child: Icon(Icons.star, size: 14, color: Colors.orange),
               ),
+            const Spacer(),
+            Text(
+              '${_words.length - _currentIndex} / $_initialCount',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black45),
+            ),
           ],
         ),
         Expanded(
-          child: Center(
-            child: WordCardWidget(
-              word: word,
-              tts: _tts,
-              isPassed: _isPassed,
-              isHard: _isHard,
-              onPassed: _onPassed,
-              onToggleHard: _onToggleHard,
+          child: GestureDetector(
+            onVerticalDragEnd: (details) {
+              if (_autoPlaying) return; // no swipe during auto-play
+              if (details.primaryVelocity == null) return;
+              if (details.primaryVelocity! < -200) {
+                _nextWord();
+              } else if (details.primaryVelocity! > 200) {
+                _prevWord();
+              }
+            },
+            child: Center(
+              child: WordCardWidget(
+                word: word,
+                tts: _tts,
+                isPassed: _isPassed,
+                isHard: _isHard,
+                onPassed: _onPassed,
+                onToggleHard: _onToggleHard,
+              ),
             ),
           ),
         ),
@@ -470,73 +540,60 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
           child: _autoPlaying
               ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton.icon(
+                    IconButton(
+                      onPressed: _togglePause,
+                      icon: Icon(_autoPaused ? Icons.play_arrow : Icons.pause,
+                          size: 24, color: Colors.blue),
+                      tooltip: _autoPaused ? '继续' : '暂停',
+                    ),
+                    IconButton(
                       onPressed: _stopAutoPlay,
-                      icon: const Icon(Icons.stop, size: 16),
-                      label: const Text('停止', style: TextStyle(fontSize: 12)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      ),
+                      icon: const Icon(Icons.stop, color: Colors.red, size: 24),
+                      tooltip: '停止',
                     ),
-                    const SizedBox(width: 8),
-                    _smallActionBtn(
-                      icon: Icons.check_circle_outline,
-                      label: _isPassed ? '已通过' : '通过',
-                      color: Colors.green,
-                      active: _isPassed,
-                      onTap: _onPassed,
+                    IconButton(
+                      onPressed: _onPassed,
+                      icon: Icon(Icons.check_circle, size: 24,
+                          color: _isPassed ? Colors.green : Colors.grey[400]!),
+                      tooltip: '通过',
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${_words.length - _currentIndex} / $_initialCount',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black54),
-                    ),
-                    const SizedBox(width: 4),
-                    _smallActionBtn(
-                      icon: _isHard ? Icons.star : Icons.star_border,
-                      label: _isHard ? '已标难' : '标难',
-                      color: Colors.orange,
-                      active: _isHard,
-                      onTap: _onToggleHard,
+                    IconButton(
+                      onPressed: _onToggleHard,
+                      icon: Icon(_isHard ? Icons.star : Icons.star_border, size: 24,
+                          color: _isHard ? Colors.orange : Colors.grey[400]!),
+                      tooltip: '标为难题',
                     ),
                   ],
                 )
               : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: isFirst ? null : _prevWord,
-                      icon: const Icon(Icons.arrow_back),
-                      label: const Text('上一词'),
+                      icon: Icon(Icons.arrow_back,
+                          color: isFirst ? Colors.grey[300] : null),
+                      tooltip: '上一词',
                     ),
-                    // Pass button
-                    _smallActionBtn(
-                      icon: Icons.check_circle_outline,
-                      label: _isPassed ? '已通过' : '通过',
-                      color: Colors.green,
-                      active: _isPassed,
-                      onTap: _onPassed,
+                    IconButton(
+                      onPressed: _onPassed,
+                      icon: Icon(_isPassed ? Icons.check_circle : Icons.check_circle_outline,
+                          size: 24,
+                          color: _isPassed ? Colors.green : Colors.grey[500]!),
+                      tooltip: '通过',
                     ),
-                    Text(
-                      '${_words.length - _currentIndex} / $_initialCount',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black54),
+                    IconButton(
+                      onPressed: _onToggleHard,
+                      icon: Icon(_isHard ? Icons.star : Icons.star_border, size: 24,
+                          color: _isHard ? Colors.orange : Colors.grey[500]!),
+                      tooltip: '标为难题',
                     ),
-                    // Hard button
-                    _smallActionBtn(
-                      icon: _isHard ? Icons.star : Icons.star_border,
-                      label: _isHard ? '已标难' : '标为难题',
-                      color: Colors.orange,
-                      active: _isHard,
-                      onTap: _onToggleHard,
-                    ),
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: isLast ? null : _nextWord,
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text('下一词'),
+                      icon: Icon(Icons.arrow_forward,
+                          color: isLast ? Colors.grey[300] : null),
+                      tooltip: '下一词',
                     ),
                   ],
                 ),
