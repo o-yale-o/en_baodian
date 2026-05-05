@@ -124,6 +124,28 @@ class DbService {
     return rows.map((r) => Word.fromMap(r)).toList();
   }
 
+  static Future<List<Word>> getWordsByGrade(int gradeId, {bool skipPassed = false}) async {
+    final d = await db;
+    if (skipPassed) {
+      final rows = await d.rawQuery('''
+        SELECT w.* FROM words w
+        JOIN units u ON u.id = w.unit_id
+        LEFT JOIN word_progress wp ON w.id = wp.word_id
+        WHERE u.grade_id = ?
+          AND (wp.is_passed IS NULL OR wp.is_passed = 0)
+        ORDER BY w.id
+      ''', [gradeId]);
+      return rows.map((r) => Word.fromMap(r)).toList();
+    }
+    final rows = await d.rawQuery('''
+      SELECT w.* FROM words w
+      JOIN units u ON u.id = w.unit_id
+      WHERE u.grade_id = ?
+      ORDER BY w.id
+    ''', [gradeId]);
+    return rows.map((r) => Word.fromMap(r)).toList();
+  }
+
   static Future<List<Word>> getHardWords() async {
     final d = await db;
     final rows = await d.rawQuery('''

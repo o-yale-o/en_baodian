@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   bool _loading = false;
   bool _isHardMode = false;
   int? _currentUnitId;
+  bool _autoPlaying = false;
 
   bool _isPassed = false;
   bool _isHard = false;
@@ -36,6 +37,25 @@ class _HomePageState extends State<HomePage> {
     await _loadWords(
       () => DbService.getWordsByUnit(unitId, skipPassed: true),
       unitName,
+      false,
+    );
+  }
+
+  Future<void> _onUnitAutoPlay(int unitId, String unitName) async {
+    await _onUnitSelected(unitId, unitName);
+    if (mounted) _startAutoPlay();
+  }
+
+  Future<void> _onGradeAutoPlay(int gradeId, String gradeName) async {
+    await _onGradeSelected(gradeId, gradeName);
+    if (mounted) _startAutoPlay();
+  }
+
+  Future<void> _onGradeSelected(int gradeId, String gradeName) async {
+    _currentUnitId = null;
+    await _loadWords(
+      () => DbService.getWordsByGrade(gradeId, skipPassed: true),
+      '$gradeName — 全部剩余',
       false,
     );
   }
@@ -185,6 +205,66 @@ class _HomePageState extends State<HomePage> {
     _treeKey.currentState?.refreshCounts();
   }
 
+  // ── auto play ────────────────────────────────────────────
+
+  Future<void> _startAutoPlay() async {
+    if (_words.isEmpty) return;
+    setState(() => _autoPlaying = true);
+    await _playLoop();
+  }
+
+  Future<void> _playLoop() async {
+    while (_autoPlaying && _words.isNotEmpty && _currentIndex < _words.length) {
+      final w = _words[_currentIndex];
+      _refreshProgress();
+      _preloadCurrent();
+      setState(() {}); // update UI
+
+      // 1. English word
+      await _tts.speakAndWait(w.word);
+      if (!_autoPlaying) return;
+      await Future.delayed(const Duration(milliseconds: 400));
+
+      // 2. Chinese meaning (strip part-of-speech markers)
+      final meaning = w.meaning.replaceAll(RegExp(r'[a-z]+\.[ ]*'), '');
+      await _tts.speakChinese(meaning);
+      if (!_autoPlaying) return;
+      await Future.delayed(const Duration(milliseconds: 400));
+
+      // 3. Sentence
+      if (w.sentence.isNotEmpty) {
+        await _tts.speakAndWait(w.sentence);
+        if (!_autoPlaying) return;
+        await Future.delayed(const Duration(milliseconds: 400));
+      }
+
+      // 4. Sentence Chinese
+      if (w.sentenceCn.isNotEmpty) {
+        await _tts.speakChinese(w.sentenceCn);
+        if (!_autoPlaying) return;
+      }
+
+      // Advance
+      if (_currentIndex < _words.length - 1) {
+        setState(() => _currentIndex++);
+        await Future.delayed(const Duration(milliseconds: 600));
+      } else {
+        // Done
+        setState(() => _autoPlaying = false);
+        return;
+      }
+    }
+    if (mounted) setState(() => _autoPlaying = false);
+  }
+
+  void _stopAutoPlay() {
+    _autoPlaying = false;
+    _tts.stop();
+    setState(() {});
+  }
+
+  // ── toggle hard ─────────────────────────────────────────
+
   Future<void> _onToggleHard() async {
     final w = _words[_currentIndex];
     if (w.id == null) return;
@@ -224,6 +304,8 @@ class _HomePageState extends State<HomePage> {
                     child: GradeTreeWidget(
                       key: _treeKey,
                       onUnitSelected: _onUnitSelected,
+                      onUnitAutoPlay: _onUnitAutoPlay,
+                      onGradeSelected: _onGradeAutoPlay,
                       onHardBookSelected: _onHardBookSelected,
                     ),
                   ),
@@ -319,32 +401,52 @@ class _HomePageState extends State<HomePage> {
               tts: _tts,
               isPassed: _isPassed,
               isHard: _isHard,
-              onPassed: _onPassed,
-              onToggleHard: _onToggleHard,
+              onPassed: _autoPlaying ? () {} : _onPassed,
+              onToggleHard: _autoPlaying ? () {} : _onToggleHard,
             ),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              OutlinedButton.icon(
-                onPressed: isFirst ? null : _prevWord,
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('上一词'),
-              ),
-              Text(
-                '${_currentIndex + 1} / ${_words.length}',
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              OutlinedButton.icon(
-                onPressed: isLast ? null : _nextWord,
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('下一词'),
-              ),
-            ],
-          ),
+          child: _autoPlaying
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _stopAutoPlay,
+                      icon: const Icon(Icons.stop, size: 18),
+                      label: const Text('停止自动播放'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '${_currentIndex + 1} / ${_words.length}',
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: isFirst ? null : _prevWord,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('上一词'),
+                    ),
+                    Text(
+                      '${_currentIndex + 1} / ${_words.length}',
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: isLast ? null : _nextWord,
+                      icon: const Icon(Icons.arrow_forward),
+                      label: const Text('下一词'),
+                    ),
+                  ],
+                ),
         ),
         const SizedBox(height: 6),
       ],

@@ -3,11 +3,15 @@ import '../services/db_service.dart';
 
 class GradeTreeWidget extends StatefulWidget {
   final void Function(int unitId, String unitName) onUnitSelected;
+  final void Function(int unitId, String unitName) onUnitAutoPlay;
+  final void Function(int gradeId, String gradeName) onGradeSelected;
   final VoidCallback onHardBookSelected;
 
   const GradeTreeWidget({
     super.key,
     required this.onUnitSelected,
+    required this.onUnitAutoPlay,
+    required this.onGradeSelected,
     required this.onHardBookSelected,
   });
 
@@ -119,9 +123,24 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
             final gradeId = grade['id'] as int;
             return ExpansionTile(
               leading: const Icon(Icons.menu_book, size: 20),
-              title: Text(
-                '${grade['name']} (${_rem(_gradeCounts[grade['id']] ?? 0, _gradePassed[grade['id']] ?? 0)})',
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${grade['name']} (${_rem(_gradeCounts[grade['id']] ?? 0, _gradePassed[grade['id']] ?? 0)})',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => widget.onGradeSelected(
+                        grade['id'] as int, grade['name'] as String),
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Padding(
+                      padding: EdgeInsets.all(2),
+                      child: Icon(Icons.play_circle_outline, size: 20, color: Colors.blue),
+                    ),
+                  ),
+                ],
               ),
               children: [
                 FutureBuilder<List<Map<String, dynamic>>>(
@@ -140,15 +159,30 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
                         final isSelected = unitId == _selectedUnitId;
                         return ListTile(
                           dense: true,
-                          contentPadding: const EdgeInsets.only(left: 56, right: 8),
+                          contentPadding: const EdgeInsets.only(left: 56, right: 4),
                           selected: isSelected,
                           selectedTileColor: Colors.blue.withAlpha(25),
-                          title: Text(
-                              '$unitName (${_rem(_wordCounts[unitId] ?? 0, _passedCounts[unitId] ?? 0)})',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight:
-                                      isSelected ? FontWeight.bold : FontWeight.normal)),
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                    '$unitName (${_rem(_wordCounts[unitId] ?? 0, _passedCounts[unitId] ?? 0)})',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight:
+                                            isSelected ? FontWeight.bold : FontWeight.normal)),
+                              ),
+                              InkWell(
+                                onTap: () => widget.onUnitAutoPlay(unitId, unitName),
+                                borderRadius: BorderRadius.circular(10),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(Icons.play_circle_outline,
+                                      size: 17, color: Colors.blue),
+                                ),
+                              ),
+                            ],
+                          ),
                           onTap: () {
                             setState(() {
                               _selectedUnitId = unitId;
