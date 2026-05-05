@@ -50,7 +50,11 @@
       "WebFetch(domain:www.zhihu.com)",
       "WebFetch(domain:www.51jiaoshi.com)",
       "WebFetch(domain:www.zxx.com.cn)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(flutter build *)",
+      "Bash(rm -rf \"build/publish/win\")",
+      "Bash(mkdir -p \"build/publish/win\")",
+      "Bash(cp -r \"build/windows/x64/runner/Release/\"* \"build/publish/win/\")"
     ]
   }
 }

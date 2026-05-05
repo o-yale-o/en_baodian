@@ -474,17 +474,34 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     ElevatedButton.icon(
                       onPressed: _stopAutoPlay,
-                      icon: const Icon(Icons.stop, size: 18),
-                      label: const Text('停止自动播放'),
+                      icon: const Icon(Icons.stop, size: 16),
+                      label: const Text('停止', style: TextStyle(fontSize: 12)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 8),
+                    _smallActionBtn(
+                      icon: Icons.check_circle_outline,
+                      label: _isPassed ? '已通过' : '通过',
+                      color: Colors.green,
+                      active: _isPassed,
+                      onTap: _onPassed,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
                       '${_words.length - _currentIndex} / $_initialCount',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black54),
+                    ),
+                    const SizedBox(width: 4),
+                    _smallActionBtn(
+                      icon: _isHard ? Icons.star : Icons.star_border,
+                      label: _isHard ? '已标难' : '标难',
+                      color: Colors.orange,
+                      active: _isHard,
+                      onTap: _onToggleHard,
                     ),
                   ],
                 )
