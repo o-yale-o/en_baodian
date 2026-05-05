@@ -6,6 +6,7 @@ class GradeTreeWidget extends StatefulWidget {
   final void Function(int unitId, String unitName) onUnitAutoPlay;
   final void Function(int gradeId, String gradeName) onGradeSelected;
   final VoidCallback onHardBookSelected;
+  final VoidCallback onHardBookAutoPlay;
 
   const GradeTreeWidget({
     super.key,
@@ -13,6 +14,7 @@ class GradeTreeWidget extends StatefulWidget {
     required this.onUnitAutoPlay,
     required this.onGradeSelected,
     required this.onHardBookSelected,
+    required this.onHardBookAutoPlay,
   });
 
   @override
@@ -81,6 +83,14 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
     });
   }
 
+  void _autoPlayHardBook() {
+    setState(() {
+      _hardBookSelected = true;
+      _selectedUnitId = null;
+    });
+    widget.onHardBookAutoPlay();
+  }
+
   void _selectHardBook() {
     setState(() {
       _hardBookSelected = true;
@@ -100,13 +110,28 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
           selected: _hardBookSelected,
           selectedTileColor: Colors.orange.withAlpha(25),
           leading: Icon(Icons.star, size: 20, color: Colors.orange[700]),
-          title: Text(
-            '难题本 ($_hardCount)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: _hardBookSelected ? FontWeight.bold : FontWeight.w500,
-              color: _hardBookSelected ? Colors.orange[800] : null,
-            ),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '难题本 ($_hardCount)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: _hardBookSelected ? FontWeight.bold : FontWeight.w500,
+                    color: _hardBookSelected ? Colors.orange[800] : null,
+                  ),
+                ),
+              ),
+              if (_hardCount > 0)
+                InkWell(
+                  onTap: _autoPlayHardBook,
+                  borderRadius: BorderRadius.circular(10),
+                  child: const Padding(
+                    padding: EdgeInsets.all(2),
+                    child: Icon(Icons.play_circle_outline, size: 20, color: Colors.blue),
+                  ),
+                ),
+            ],
           ),
           onTap: _selectHardBook,
         ),
@@ -131,15 +156,16 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                   ),
-                  InkWell(
-                    onTap: () => widget.onGradeSelected(
-                        grade['id'] as int, grade['name'] as String),
-                    borderRadius: BorderRadius.circular(12),
-                    child: const Padding(
-                      padding: EdgeInsets.all(2),
-                      child: Icon(Icons.play_circle_outline, size: 20, color: Colors.blue),
+                  if ((_gradeCounts[grade['id']] ?? 0) - (_gradePassed[grade['id']] ?? 0) > 0)
+                    InkWell(
+                      onTap: () => widget.onGradeSelected(
+                          grade['id'] as int, grade['name'] as String),
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Padding(
+                        padding: EdgeInsets.all(2),
+                        child: Icon(Icons.play_circle_outline, size: 20, color: Colors.blue),
+                      ),
                     ),
-                  ),
                 ],
               ),
               children: [
@@ -168,19 +194,20 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
                                 child: Text(
                                     '$unitName (${_rem(_wordCounts[unitId] ?? 0, _passedCounts[unitId] ?? 0)})',
                                     style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight:
-                                            isSelected ? FontWeight.bold : FontWeight.normal)),
+                                            isSelected ? FontWeight.w700 : FontWeight.w500)),
                               ),
-                              InkWell(
-                                onTap: () => widget.onUnitAutoPlay(unitId, unitName),
-                                borderRadius: BorderRadius.circular(10),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(2),
-                                  child: Icon(Icons.play_circle_outline,
-                                      size: 17, color: Colors.blue),
+                              if ((_wordCounts[unitId] ?? 0) - (_passedCounts[unitId] ?? 0) > 0)
+                                InkWell(
+                                  onTap: () => widget.onUnitAutoPlay(unitId, unitName),
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(2),
+                                    child: Icon(Icons.play_circle_outline,
+                                        size: 17, color: Colors.blue),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                           onTap: () {

@@ -17,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   final _treeKey = GlobalKey<GradeTreeWidgetState>();
   List<Word> _words = [];
   int _currentIndex = 0;
+  int _initialCount = 0;
   String _currentLabel = '';
   bool _loading = false;
   bool _isHardMode = false;
@@ -42,12 +43,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _onUnitAutoPlay(int unitId, String unitName) async {
+    _treeKey.currentState?.selectUnit(unitId);
     await _onUnitSelected(unitId, unitName);
     if (mounted) _startAutoPlay();
   }
 
   Future<void> _onGradeAutoPlay(int gradeId, String gradeName) async {
     await _onGradeSelected(gradeId, gradeName);
+    if (mounted) _startAutoPlay();
+  }
+
+  Future<void> _onHardBookAutoPlay() async {
+    await _onHardBookSelected();
     if (mounted) _startAutoPlay();
   }
 
@@ -79,12 +86,14 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _words = words;
       _currentIndex = 0;
+      _initialCount = words.length;
       _currentLabel = label;
       _isHardMode = hardMode;
       _loading = false;
     });
     _refreshProgress();
     _preloadCurrent();
+    _updateTreeFocus();
   }
 
   Future<void> _autoAdvance() async {
@@ -128,12 +137,18 @@ class _HomePageState extends State<HomePage> {
   Future<void> _resetCurrentUnit() async {
     if (_currentUnitId == null) return;
     await DbService.resetUnitPassed(_currentUnitId!);
-    // Reload the same unit
+    _treeKey.currentState?.refreshCounts();
     await _loadWords(
       () => DbService.getWordsByUnit(_currentUnitId!, skipPassed: true),
       _currentLabel,
       false,
     );
+  }
+
+  void _updateTreeFocus() {
+    if (_words.isNotEmpty && _currentIndex < _words.length) {
+      _treeKey.currentState?.selectUnit(_words[_currentIndex].unitId);
+    }
   }
 
   Future<void> _refreshProgress() async {
@@ -160,6 +175,7 @@ class _HomePageState extends State<HomePage> {
   void _prevWord() {
     if (_currentIndex > 0) {
       setState(() => _currentIndex--);
+      _updateTreeFocus();
       _refreshProgress();
       _preloadCurrent();
     }
@@ -168,6 +184,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _nextWord() async {
     if (_currentIndex < _words.length - 1) {
       setState(() => _currentIndex++);
+      _updateTreeFocus();
       _refreshProgress();
       _preloadCurrent();
     }
@@ -177,16 +194,25 @@ class _HomePageState extends State<HomePage> {
     final w = _words[_currentIndex];
     if (w.id == null) return;
     await DbService.setPassed(w.id!, true);
-    // If it was hard, clear hard status so it leaves the hard book
     if (_isHard) {
       await DbService.setHard(w.id!, false);
     }
-    // In non-hard mode, passed words are filtered out — move to next
+    _treeKey.currentState?.refreshCounts();
+
+    // Auto-play mode: just mark, let auto-play control advance
+    if (_autoPlaying) {
+      setState(() {
+        _isPassed = true;
+        _isHard = false;
+      });
+      return;
+    }
+
+    // Manual mode: remove from list & advance
     if (!_isHardMode) {
       _words.removeAt(_currentIndex);
       if (_words.isEmpty) {
         setState(() {});
-        _treeKey.currentState?.refreshCounts();
         _autoAdvance();
         return;
       }
@@ -202,7 +228,6 @@ class _HomePageState extends State<HomePage> {
         _isHard = false;
       });
     }
-    _treeKey.currentState?.refreshCounts();
   }
 
   // ── auto play ────────────────────────────────────────────
@@ -218,6 +243,7 @@ class _HomePageState extends State<HomePage> {
       final w = _words[_currentIndex];
       _refreshProgress();
       _preloadCurrent();
+      _updateTreeFocus();
       setState(() {}); // update UI
 
       // 1. English word
@@ -257,6 +283,39 @@ class _HomePageState extends State<HomePage> {
     if (mounted) setState(() => _autoPlaying = false);
   }
 
+  Widget _smallActionBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          border: Border.all(color: active ? color : Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(6),
+          color: active ? color.withAlpha(20) : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: active ? color : Colors.grey[500]),
+            const SizedBox(width: 4),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                    color: active ? color : Colors.grey[600])),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _stopAutoPlay() {
     _autoPlaying = false;
     _tts.stop();
@@ -270,7 +329,14 @@ class _HomePageState extends State<HomePage> {
     if (w.id == null) return;
     final newHard = !_isHard;
     await DbService.setHard(w.id!, newHard);
-    setState(() => _isHard = newHard);
+    // 互斥：标为难题 → 清除通过状态
+    if (newHard) {
+      await DbService.setPassed(w.id!, false);
+    }
+    setState(() {
+      _isHard = newHard;
+      if (newHard) _isPassed = false;
+    });
     _treeKey.currentState?.refreshCounts();
   }
 
@@ -293,13 +359,6 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    color: Colors.blue[50],
-                    child: const Text('人教版初中英语',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                  ),
                   Expanded(
                     child: GradeTreeWidget(
                       key: _treeKey,
@@ -307,6 +366,7 @@ class _HomePageState extends State<HomePage> {
                       onUnitAutoPlay: _onUnitAutoPlay,
                       onGradeSelected: _onGradeAutoPlay,
                       onHardBookSelected: _onHardBookSelected,
+                      onHardBookAutoPlay: _onHardBookAutoPlay,
                     ),
                   ),
                 ],
@@ -401,8 +461,8 @@ class _HomePageState extends State<HomePage> {
               tts: _tts,
               isPassed: _isPassed,
               isHard: _isHard,
-              onPassed: _autoPlaying ? () {} : _onPassed,
-              onToggleHard: _autoPlaying ? () {} : _onToggleHard,
+              onPassed: _onPassed,
+              onToggleHard: _onToggleHard,
             ),
           ),
         ),
@@ -423,7 +483,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      '${_currentIndex + 1} / ${_words.length}',
+                      '${_words.length - _currentIndex} / $_initialCount',
                       style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
@@ -436,9 +496,25 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.arrow_back),
                       label: const Text('上一词'),
                     ),
+                    // Pass button
+                    _smallActionBtn(
+                      icon: Icons.check_circle_outline,
+                      label: _isPassed ? '已通过' : '通过',
+                      color: Colors.green,
+                      active: _isPassed,
+                      onTap: _onPassed,
+                    ),
                     Text(
-                      '${_currentIndex + 1} / ${_words.length}',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      '${_words.length - _currentIndex} / $_initialCount',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black54),
+                    ),
+                    // Hard button
+                    _smallActionBtn(
+                      icon: _isHard ? Icons.star : Icons.star_border,
+                      label: _isHard ? '已标难' : '标为难题',
+                      color: Colors.orange,
+                      active: _isHard,
+                      onTap: _onToggleHard,
                     ),
                     OutlinedButton.icon(
                       onPressed: isLast ? null : _nextWord,

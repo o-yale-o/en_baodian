@@ -54,6 +54,10 @@ Future<void> seedDatabase() async {
   final tem8 = await DbService.insertGrade('专八', 11);
   await _loadJsonGrade('assets/Level8_1.json', '', -1, existingGradeId: tem8, startSortOrder: 99);
   await _loadJsonGrade('assets/Level8_2.json', '', -1, existingGradeId: tem8, startSortOrder: 99);
+
+  // 计算机英语
+  final cs = await DbService.insertGrade('计算机英语', 12);
+  await _loadJsonGrade('assets/computer_english.json', '', -1, existingGradeId: cs, startSortOrder: 99);
 }
 
 // ═══════════════════════════════════════════════════════════════

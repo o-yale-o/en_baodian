@@ -19,6 +19,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(fontWeight: FontWeight.w500),
+          bodyMedium: TextStyle(fontWeight: FontWeight.w500),
+          titleLarge: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+          titleMedium: TextStyle(fontWeight: FontWeight.w600),
+          titleSmall: TextStyle(fontWeight: FontWeight.w500),
+          headlineLarge: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
       home: const HomePage(),
     );

@@ -101,7 +101,7 @@ class WordCardWidget extends StatelessWidget {
                     word.sentence,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w500,
                           color: Colors.grey[800],
                         ),
                   ),
@@ -125,76 +125,6 @@ class WordCardWidget extends StatelessWidget {
                   ),
             ),
 
-            const SizedBox(height: 24),
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Pass button
-                _ActionButton(
-                  icon: Icons.check_circle_outline,
-                  label: '通过',
-                  color: Colors.green,
-                  active: isPassed,
-                  onTap: onPassed,
-                ),
-                // Hard button
-                _ActionButton(
-                  icon: isHard ? Icons.star : Icons.star_border,
-                  label: isHard ? '已标难' : '标为难题',
-                  color: Colors.orange,
-                  active: isHard,
-                  onTap: onToggleHard,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final bool active;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.active,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: active ? color : Colors.grey[300]!),
-          borderRadius: BorderRadius.circular(8),
-          color: active ? color.withAlpha(25) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: active ? color : Colors.grey[500]),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: active ? color : Colors.grey[600],
-                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
           ],
         ),
       ),
