@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/word.dart';
 import '../services/db_service.dart';
@@ -26,6 +28,9 @@ class _HomePageState extends State<HomePage> {
   int? _currentUnitId;
   bool _autoPlaying = false;
   bool _autoPaused = false;
+  DateTime _lastClickTime = DateTime.fromMillisecondsSinceEpoch(0);
+  int _lastClickButton = 0;
+  Timer? _clickTimer;
 
   bool _isPassed = false;
   bool _isHard = false;
@@ -353,8 +358,14 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
+      body: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): _prevWord,
+          const SingleActivator(LogicalKeyboardKey.arrowRight): _nextWord,
+          const SingleActivator(LogicalKeyboardKey.space): _onPassed,
+        },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 600;
           if (isWide) {
             return Row(
@@ -379,7 +390,8 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
-      // Mobile bottom bar
+    ),
+    // Mobile bottom bar
       bottomNavigationBar: Builder(
         builder: (context) {
           final isWide = MediaQuery.of(context).size.width >= 600;
@@ -514,17 +526,38 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         Expanded(
-          child: GestureDetector(
-            onVerticalDragEnd: (details) {
-              if (_autoPlaying) return; // no swipe during auto-play
-              if (details.primaryVelocity == null) return;
-              if (details.primaryVelocity! < -200) {
-                _nextWord();
-              } else if (details.primaryVelocity! > 200) {
-                _prevWord();
+          child: Listener(
+            onPointerDown: (e) {
+              if (_autoPlaying) return;
+              if (e.kind != PointerDeviceKind.mouse) return;
+              final now = DateTime.now();
+              final isLeft = e.buttons == kPrimaryButton;
+              final isRight = e.buttons == kSecondaryMouseButton;
+              if (!isLeft && !isRight) return;
+
+              final since = now.difference(_lastClickTime);
+              if (since < const Duration(milliseconds: 400) && e.buttons == _lastClickButton) {
+                _clickTimer?.cancel();
+                if (isLeft) _onPassed(); else _onToggleHard();
+                _lastClickTime = DateTime.fromMillisecondsSinceEpoch(0);
+                return;
               }
+              _lastClickTime = now;
+              _lastClickButton = e.buttons;
+              _clickTimer?.cancel();
+              _clickTimer = Timer(const Duration(milliseconds: 400), () {
+                if (_lastClickButton == kPrimaryButton) _prevWord();
+                else if (_lastClickButton == kSecondaryMouseButton) _nextWord();
+              });
             },
-            child: Center(
+            child: GestureDetector(
+              onVerticalDragEnd: (details) {
+                if (_autoPlaying) return;
+                if (details.primaryVelocity == null) return;
+                if (details.primaryVelocity! < -200) _nextWord();
+                else if (details.primaryVelocity! > 200) _prevWord();
+              },
+              child: Center(
               child: WordCardWidget(
                 word: word,
                 tts: _tts,
@@ -534,6 +567,7 @@ class _HomePageState extends State<HomePage> {
                 onToggleHard: _onToggleHard,
               ),
             ),
+          ),
           ),
         ),
         Padding(
