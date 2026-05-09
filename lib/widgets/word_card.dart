@@ -59,23 +59,19 @@ class WordCardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Pronunciation + speaker
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  word.pronunciation,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[700],
-                      ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () => tts.speak(word.word),
-                  icon: const Icon(Icons.volume_up, color: Colors.blue),
-                  tooltip: '发音',
-                ),
-              ],
+            // Pronunciation
+            Text(
+              word.pronunciation,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            // Speaker button on its own line
+            IconButton(
+              onPressed: () => tts.speak(word.word),
+              icon: const Icon(Icons.volume_up, color: Colors.blue, size: 22),
+              tooltip: '发音',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
             const SizedBox(height: 20),
             const Divider(),
