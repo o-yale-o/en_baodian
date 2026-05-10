@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
@@ -28,9 +27,6 @@ class _HomePageState extends State<HomePage> {
   int? _currentUnitId;
   bool _autoPlaying = false;
   bool _autoPaused = false;
-  DateTime _lastClickTime = DateTime.fromMillisecondsSinceEpoch(0);
-  int _lastClickButton = 0;
-  Timer? _clickTimer;
 
   bool _isPassed = false;
   bool _isHard = false;
@@ -322,6 +318,11 @@ class _HomePageState extends State<HomePage> {
     if (mounted) setState(() => _autoPlaying = false);
   }
 
+  void _handleMouseClick(int button) {
+    if (button == kPrimaryButton) _prevWord();
+    else _nextWord();
+  }
+
   void _stopAutoPlay() {
     _autoPlaying = false;
     _autoPaused = false;
@@ -610,32 +611,18 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         Expanded(
-          child: Listener(
-            onPointerDown: (e) {
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTapUp: (details) {
               if (_autoPlaying) return;
-              if (e.kind != PointerDeviceKind.mouse) return;
-              final now = DateTime.now();
-              final isLeft = e.buttons == kPrimaryButton;
-              final isRight = e.buttons == kSecondaryMouseButton;
-              if (!isLeft && !isRight) return;
-
-              final since = now.difference(_lastClickTime);
-              if (since < const Duration(milliseconds: 400) && e.buttons == _lastClickButton) {
-                _clickTimer?.cancel();
-                if (isLeft) _onPassed(); else _onToggleHard();
-                _lastClickTime = DateTime.fromMillisecondsSinceEpoch(0);
-                return;
-              }
-              _lastClickTime = now;
-              _lastClickButton = e.buttons;
-              _clickTimer?.cancel();
-              _clickTimer = Timer(const Duration(milliseconds: 400), () {
-                if (_lastClickButton == kPrimaryButton) _prevWord();
-                else if (_lastClickButton == kSecondaryMouseButton) _nextWord();
-              });
+              if (details.kind != PointerDeviceKind.mouse) return;
+              _handleMouseClick(kPrimaryButton);
             },
-            child: GestureDetector(
-              onVerticalDragEnd: (details) {
+            onSecondaryTapUp: (details) {
+              if (_autoPlaying) return;
+              _handleMouseClick(kSecondaryMouseButton);
+            },
+            onVerticalDragEnd: (details) {
                 if (_autoPlaying) return;
                 if (details.primaryVelocity == null) return;
                 if (details.primaryVelocity! < -200) _nextWord();
@@ -651,7 +638,6 @@ class _HomePageState extends State<HomePage> {
                 onToggleHard: _onToggleHard,
               ),
             ),
-          ),
           ),
         ),
         Padding(

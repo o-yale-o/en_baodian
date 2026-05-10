@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/word.dart';
 import '../services/tts_service.dart';
 import '../services/word_analysis.dart';
+import '../widgets/etymology_section.dart';
 
 class WordCardWidget extends StatelessWidget {
   final Word word;
@@ -132,6 +133,9 @@ class WordCardWidget extends StatelessWidget {
                     color: Colors.grey[500],
                   ),
             ),
+
+            // Etymology (expandable, at bottom)
+            EtymologySection(word: word.word),
 
           ],
         ),
