@@ -357,6 +357,12 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => _showSearch(context),
+          ),
+        ],
       ),
       body: CallbackShortcuts(
         bindings: {
@@ -435,6 +441,84 @@ class _HomePageState extends State<HomePage> {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
+  }
+
+  Future<void> _showSearch(BuildContext context) async {
+    final ctrl = TextEditingController();
+    List<Map<String, dynamic>> results = [];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => SizedBox(
+          height: MediaQuery.of(ctx).size.height * 0.7,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(children: [
+                  Expanded(
+                    child: TextField(
+                      controller: ctrl,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: '输入单词或中文释义',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.search),
+                        isDense: true,
+                      ),
+                      onChanged: (q) async {
+                        if (q.trim().isEmpty) { setSheetState(() => results = []); return; }
+                        final r = await DbService.searchWords(q.trim());
+                        setSheetState(() => results = r);
+                      },
+                    ),
+                  ),
+                ]),
+              ),
+              Expanded(
+                child: results.isEmpty
+                    ? const Center(child: Text('输入关键词搜索', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        itemCount: results.length,
+                        itemBuilder: (_, i) {
+                          final r = results[i];
+                          return ListTile(
+                            dense: true,
+                            title: Text(r['word'] as String, style: const TextStyle(fontWeight: FontWeight.w600)),
+                            subtitle: Text('${r['meaning']}  ·  ${r['grade_name']} / ${r['unit_name']}',
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12)),
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              _navigateToWord(r['unit_id'] as int, r['unit_name'] as String, r['id'] as int);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navigateToWord(int unitId, String unitName, int wordId) async {
+    final words = await DbService.getWordsByUnit(unitId);
+    final idx = words.indexWhere((w) => w.id == wordId);
+    if (idx < 0) return;
+    _treeKey.currentState?.selectUnit(unitId);
+    _dismissTree();
+    setState(() {
+      _currentUnitId = unitId;
+      _words = words;
+      _currentIndex = idx;
+      _currentLabel = unitName;
+      _isHardMode = false;
+      _initialCount = words.length;
+    });
+    _preloadCurrent();
   }
 
   void _showTreeSheet(BuildContext context) {

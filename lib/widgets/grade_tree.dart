@@ -31,6 +31,7 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
   int? _selectedUnitId;
   bool _hardBookSelected = false;
   int _hardCount = 0;
+  final _expandedGrades = <int>{};
 
   @override
   void initState() {
@@ -77,10 +78,24 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
   }
 
   void selectUnit(int unitId) {
-    setState(() {
-      _selectedUnitId = unitId;
-      _hardBookSelected = false;
+    _ensureGradeExpanded(unitId).then((_) {
+      if (mounted) {
+        setState(() {
+          _selectedUnitId = unitId;
+          _hardBookSelected = false;
+        });
+      }
     });
+  }
+
+  Future<void> _ensureGradeExpanded(int unitId) async {
+    final d = await DbService.db;
+    final rows = await d.query('units', where: 'id = ?', whereArgs: [unitId], limit: 1);
+    if (rows.isEmpty) return;
+    final gradeId = rows.first['grade_id'] as int;
+    // Preload units to ensure cache
+    await _loadUnits(gradeId);
+    setState(() => _expandedGrades.add(gradeId));
   }
 
   void _autoPlayHardBook() {
@@ -147,6 +162,9 @@ class GradeTreeWidgetState extends State<GradeTreeWidget> {
           ..._grades.map((grade) {
             final gradeId = grade['id'] as int;
             return ExpansionTile(
+              key: ValueKey('${gradeId}_${_expandedGrades.contains(gradeId)}'),
+              initiallyExpanded: _expandedGrades.contains(gradeId),
+              onExpansionChanged: (_) {},
               leading: const Icon(Icons.menu_book, size: 20),
               title: Row(
                 children: [

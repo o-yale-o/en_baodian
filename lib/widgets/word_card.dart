@@ -22,18 +22,29 @@ class WordCardWidget extends StatelessWidget {
   });
 
   Widget _buildAnalysis(BuildContext context) {
-    final parts = analyze(word.word);
-    if (!parts.hasAnalysis) return const SizedBox.shrink();
+    final analysis = analyze(word.word);
+    if (!analysis.hasBreakdown) return const SizedBox.shrink();
     return Container(
       margin: const EdgeInsets.only(top: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.amber.withAlpha(20),
+        color: Colors.amber.withAlpha(18),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(
-        '构词: ${parts.format()}',
-        style: TextStyle(fontSize: 11, color: Colors.brown[600]),
+      child: SelectableText.rich(
+        TextSpan(
+          style: TextStyle(fontSize: 12, color: Colors.brown[600], fontWeight: FontWeight.w500),
+          children: [
+            TextSpan(text: '构词: ', style: TextStyle(color: Colors.brown[400])),
+            ...analysis.segments.map((seg) {
+              final isLast = seg == analysis.segments.last;
+              return TextSpan(children: [
+                TextSpan(text: seg.text, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF8B4513))),
+                TextSpan(text: '(${seg.meaning.split(' ').first})${isLast ? '' : ' + '}'),
+              ]);
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -44,9 +55,10 @@ class WordCardWidget extends StatelessWidget {
       elevation: 4,
       margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-        child: Column(
+      child: SelectionArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Word
@@ -123,6 +135,7 @@ class WordCardWidget extends StatelessWidget {
 
           ],
         ),
+      ),
       ),
     );
   }

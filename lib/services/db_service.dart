@@ -276,6 +276,20 @@ class DbService {
     ''', [gradeId])) ?? 0;
   }
 
+  static Future<List<Map<String, dynamic>>> searchWords(String query) async {
+    final d = await db;
+    final like = '%$query%';
+    return d.rawQuery('''
+      SELECT w.*, u.name as unit_name, g.name as grade_name
+      FROM words w
+      JOIN units u ON u.id = w.unit_id
+      JOIN grades g ON g.id = u.grade_id
+      WHERE w.word LIKE ? COLLATE NOCASE OR w.meaning LIKE ? COLLATE NOCASE
+      ORDER BY w.word
+      LIMIT 30
+    ''', [like, like]);
+  }
+
   // ── seed ────────────────────────────────────────────────────
 
   static Future<bool> needsSeed() async {
